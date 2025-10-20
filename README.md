@@ -149,7 +149,7 @@ The designer you're using was designed IN the designer. Load `visual-designer.ya
 ## Installation
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR-USERNAME/visualised.git
+git clone https://github.com/wallisoft/visualised.git
 cd visualised
 
 # Build

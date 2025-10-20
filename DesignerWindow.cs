@@ -133,10 +133,20 @@ private void ImportDesignerYamlToDatabase()
                         
                         mainWindow.Close();
                         
+                        // Remove old properties panel from YAML
+                        var oldPropsPanel = DesignerHelpers.FindControlByName<Panel>(mainCanvas, "PropertiesPanel");
+                        if (oldPropsPanel != null)
+                        {
+                            mainCanvas.Children.Remove(oldPropsPanel);
+                        }
+
+                        // Add new code-based properties panel
+                        var newPropsPanel = CreatePropertiesPanel();
+                        mainCanvas.Children.Add(newPropsPanel);
+
                         InitializeUIReferences(mainCanvas);
                         HookupToolboxButtons(mainCanvas);
                         HookupMenuItems(mainCanvas);
-                        HookupPropertyGroups(mainCanvas);
                         SetupPropertyEditors();
                         
                         _designCanvas = DesignerHelpers.FindCanvasByName(mainCanvas, "DesignCanvas");
@@ -948,6 +958,367 @@ private void ImportDesignerYamlToDatabase()
             UpdateYamlEditor();
         }
 
+private void AddPropertyRow(StackPanel parent, string label, ref TextBox? textBox, bool isReadOnly = false, double width = 205)
+        {
+            var grid = new Grid
+            {
+                Margin = new Thickness(0, 0, 0, 8),
+                ColumnDefinitions = new ColumnDefinitions("70,*")
+            };
+            
+            var labelControl = new TextBlock
+            {
+                Text = label,
+                FontSize = 11,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(labelControl, 0);
+            grid.Children.Add(labelControl);
+            
+            textBox = new TextBox
+            {
+                Width = width,
+                Height = 25,
+                FontSize = 11,
+                IsReadOnly = isReadOnly,
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+            
+            if (isReadOnly)
+            {
+                textBox.Foreground = new SolidColorBrush(Color.Parse("#666666"));
+                textBox.Background = new SolidColorBrush(Color.Parse("#f5f5f5"));
+            }
+            
+            Grid.SetColumn(textBox, 1);
+            grid.Children.Add(textBox);
+            
+            parent.Children.Add(grid);
+        }
+
+        private void AddPropertyRowLabel(StackPanel parent, string label, ref TextBlock? textBlock)
+        {
+            var grid = new Grid
+            {
+                Margin = new Thickness(0, 0, 0, 8),
+                ColumnDefinitions = new ColumnDefinitions("70,*")
+            };
+            
+            var labelControl = new TextBlock
+            {
+                Text = label,
+                FontSize = 11,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(labelControl, 0);
+            grid.Children.Add(labelControl);
+            
+            textBlock = new TextBlock
+            {
+                FontSize = 11,
+                Foreground = new SolidColorBrush(Color.Parse("#666666")),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(textBlock, 1);
+            grid.Children.Add(textBlock);
+            
+            parent.Children.Add(grid);
+        }
+
+        private void AddSeparator(StackPanel parent)
+        {
+            var separator = new Border
+            {
+                Height = 1,
+                Background = new SolidColorBrush(Color.Parse("#e0e0e0")),
+                Margin = new Thickness(0, 10, 0, 10)
+            };
+            parent.Children.Add(separator);
+        }
+
+        private void AddCheckBoxRow(StackPanel parent, string label, ref CheckBox? checkBox)
+        {
+            checkBox = new CheckBox
+            {
+                Content = label,
+                FontSize = 11,
+                Margin = new Thickness(0, 0, 0, 8)
+            };
+            parent.Children.Add(checkBox);
+        }
+
+        private Panel CreatePropertiesPanel()
+        {
+            var mainPanel = new Panel
+            {
+                Width = 300,
+                Height = 870,
+                Background = new SolidColorBrush(Colors.White)
+            };
+            
+            Canvas.SetLeft(mainPanel, 1100);
+            Canvas.SetTop(mainPanel, 30);
+            
+            var border = new Border
+            {
+                BorderBrush = new SolidColorBrush(Color.Parse("#c0c0c0")),
+                BorderThickness = new Thickness(1),
+                Child = new ScrollViewer
+                {
+                    VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+                    Content = CreatePropertiesContent()
+                }
+            };
+            
+            mainPanel.Children.Add(border);
+            return mainPanel;
+        }
+
+private StackPanel CreatePropertiesContent()
+        {
+            var stack = new StackPanel
+            {
+                Margin = new Thickness(10)
+            };
+            
+            // Header
+            var header = new Border
+            {
+                Background = new SolidColorBrush(Color.Parse("#e8f5e9")),
+                Padding = new Thickness(10),
+                Margin = new Thickness(-10, -10, -10, 10),
+                Child = new TextBlock
+                {
+                    Text = "⚙️ PROPERTIES",
+                    FontSize = 14,
+                    FontWeight = FontWeight.Bold,
+                    Foreground = new SolidColorBrush(Color.Parse("#2E7D32")),
+                    HorizontalAlignment = HorizontalAlignment.Center
+                }
+            };
+            stack.Children.Add(header);
+            
+            // Selected control label
+            _selectedControlLabel = new TextBlock
+            {
+                Text = "No control selected",
+                FontSize = 11,
+                FontWeight = FontWeight.Bold,
+                Foreground = new SolidColorBrush(Color.Parse("#1565C0")),
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+            stack.Children.Add(_selectedControlLabel);
+            
+            // ═══════════════════════════════════════
+            // IDENTITY GROUP
+            // ═══════════════════════════════════════
+            var identityExpander = CreatePropertyGroup("▼ Identity", Color.Parse("#1976D2"));
+            var identityStack = new StackPanel { Margin = new Thickness(10, 5, 0, 5) };
+            
+            AddPropertyRowLabel(identityStack, "Type:", ref _propType);
+            AddPropertyRow(identityStack, "Name:", ref _propName);
+            
+            identityExpander.Content = identityStack;
+            stack.Children.Add(identityExpander);
+            
+            // ═══════════════════════════════════════
+            // POSITION GROUP
+            // ═══════════════════════════════════════
+            var positionExpander = CreatePropertyGroup("▼ Position", Color.Parse("#388E3C"));
+            var positionStack = new StackPanel { Margin = new Thickness(10, 5, 0, 5) };
+            
+            // X and Y on same row
+            var posGrid = new Grid
+            {
+                Margin = new Thickness(0, 0, 0, 8),
+                ColumnDefinitions = new ColumnDefinitions("60,60,30,60")
+            };
+            
+            var xLabel = new TextBlock { Text = "X:", FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(xLabel, 0);
+            posGrid.Children.Add(xLabel);
+            
+            _propX = new TextBox { Width = 60, Height = 25, FontSize = 11 };
+            Grid.SetColumn(_propX, 1);
+            posGrid.Children.Add(_propX);
+            
+            var yLabel = new TextBlock { Text = "Y:", FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) };
+            Grid.SetColumn(yLabel, 2);
+            posGrid.Children.Add(yLabel);
+            
+            _propY = new TextBox { Width = 60, Height = 25, FontSize = 11 };
+            Grid.SetColumn(_propY, 3);
+            posGrid.Children.Add(_propY);
+            
+            positionStack.Children.Add(posGrid);
+            
+            positionExpander.Content = positionStack;
+            stack.Children.Add(positionExpander);
+            
+            // ═══════════════════════════════════════
+            // SIZE GROUP
+            // ═══════════════════════════════════════
+            var sizeExpander = CreatePropertyGroup("▼ Size", Color.Parse("#F57C00"));
+            var sizeStack = new StackPanel { Margin = new Thickness(10, 5, 0, 5) };
+            
+            // Width and Height on same row
+            var sizeGrid = new Grid
+            {
+                Margin = new Thickness(0, 0, 0, 8),
+                ColumnDefinitions = new ColumnDefinitions("60,60,40,60")
+            };
+            
+            var wLabel = new TextBlock { Text = "Width:", FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(wLabel, 0);
+            sizeGrid.Children.Add(wLabel);
+            
+            _propWidth = new TextBox { Width = 60, Height = 25, FontSize = 11 };
+            Grid.SetColumn(_propWidth, 1);
+            sizeGrid.Children.Add(_propWidth);
+            
+            var hLabel = new TextBlock { Text = "Height:", FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5, 0, 0, 0) };
+            Grid.SetColumn(hLabel, 2);
+            sizeGrid.Children.Add(hLabel);
+            
+            _propHeight = new TextBox { Width = 60, Height = 25, FontSize = 11 };
+            Grid.SetColumn(_propHeight, 3);
+            sizeGrid.Children.Add(_propHeight);
+            
+            sizeStack.Children.Add(sizeGrid);
+            
+            sizeExpander.Content = sizeStack;
+            stack.Children.Add(sizeExpander);
+            
+            // ═══════════════════════════════════════
+            // CONTENT GROUP
+            // ═══════════════════════════════════════
+            var contentExpander = CreatePropertyGroup("▼ Content", Color.Parse("#7B1FA2"));
+            var contentStack = new StackPanel { Margin = new Thickness(10, 5, 0, 5) };
+            
+            AddPropertyRow(contentStack, "Caption:", ref _propCaption, width: 180);
+            AddPropertyRow(contentStack, "Text:", ref _propText, width: 180);
+            
+            contentExpander.Content = contentStack;
+            stack.Children.Add(contentExpander);
+            
+            // ═══════════════════════════════════════
+            // APPEARANCE GROUP
+            // ═══════════════════════════════════════
+            var appearanceExpander = CreatePropertyGroup("▼ Appearance", Color.Parse("#C62828"));
+            var appearanceStack = new StackPanel { Margin = new Thickness(10, 5, 0, 5) };
+            
+            AddPropertyRow(appearanceStack, "BgColor:", ref _propBackgroundColor, width: 180);
+            AddPropertyRow(appearanceStack, "FgColor:", ref _propForegroundColor, width: 180);
+            
+            appearanceExpander.Content = appearanceStack;
+            stack.Children.Add(appearanceExpander);
+            
+            // ═══════════════════════════════════════
+            // FONT GROUP
+            // ═══════════════════════════════════════
+            var fontExpander = CreatePropertyGroup("▼ Font", Color.Parse("#00796B"));
+            var fontStack = new StackPanel { Margin = new Thickness(10, 5, 0, 5) };
+            
+            AddPropertyRow(fontStack, "Family:", ref _propFontFamily, width: 180);
+            
+            // Size and Bold on same row
+            var fontGrid = new Grid
+            {
+                Margin = new Thickness(0, 0, 0, 8),
+                ColumnDefinitions = new ColumnDefinitions("60,60,*")
+            };
+            
+            var sizeLabel = new TextBlock { Text = "Size:", FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(sizeLabel, 0);
+            fontGrid.Children.Add(sizeLabel);
+            
+            _propFontSize = new TextBox { Width = 60, Height = 25, FontSize = 11 };
+            Grid.SetColumn(_propFontSize, 1);
+            fontGrid.Children.Add(_propFontSize);
+            
+            _propFontBold = new CheckBox { Content = "Bold", FontSize = 11, Margin = new Thickness(10, 0, 0, 0) };
+            Grid.SetColumn(_propFontBold, 2);
+            fontGrid.Children.Add(_propFontBold);
+            
+            fontStack.Children.Add(fontGrid);
+            
+            fontExpander.Content = fontStack;
+            stack.Children.Add(fontExpander);
+            
+            // ═══════════════════════════════════════
+            // BEHAVIOR GROUP
+            // ═══════════════════════════════════════
+            var behaviorExpander = CreatePropertyGroup("▼ Behavior", Color.Parse("#5D4037"));
+            var behaviorStack = new StackPanel { Margin = new Thickness(10, 5, 0, 5) };
+            
+            var stateGrid = new Grid
+            {
+                Margin = new Thickness(0, 0, 0, 8),
+                ColumnDefinitions = new ColumnDefinitions("*,*")
+            };
+            
+            _propVisible = new CheckBox { Content = "Visible", FontSize = 11 };
+            Grid.SetColumn(_propVisible, 0);
+            stateGrid.Children.Add(_propVisible);
+            
+            _propEnabled = new CheckBox { Content = "Enabled", FontSize = 11 };
+            Grid.SetColumn(_propEnabled, 1);
+            stateGrid.Children.Add(_propEnabled);
+            
+            behaviorStack.Children.Add(stateGrid);
+            
+            behaviorExpander.Content = behaviorStack;
+            stack.Children.Add(behaviorExpander);
+            
+            // ═══════════════════════════════════════
+            // SCRIPTS GROUP
+            // ═══════════════════════════════════════
+            var scriptsExpander = CreatePropertyGroup("▼ Scripts", Color.Parse("#E65100"));
+            var scriptsStack = new StackPanel { Margin = new Thickness(10, 5, 0, 5) };
+            
+            var scriptsInfo = new TextBlock
+            {
+                Text = "Right-click control → Edit Scripts",
+                FontSize = 10,
+                FontStyle = FontStyle.Italic,
+                Foreground = new SolidColorBrush(Color.Parse("#757575")),
+                TextWrapping = TextWrapping.Wrap
+            };
+            scriptsStack.Children.Add(scriptsInfo);
+            
+            scriptsExpander.Content = scriptsStack;
+            scriptsExpander.IsExpanded = false; // Collapsed by default
+            stack.Children.Add(scriptsExpander);
+            
+            return stack;
+        }
+
+        private Expander CreatePropertyGroup(string header, Color color)
+        {
+            var expander = new Expander
+            {
+                IsExpanded = true,
+                Margin = new Thickness(0, 0, 0, 5)
+            };
+            
+            var headerBorder = new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(30, color.R, color.G, color.B)),
+                Padding = new Thickness(8, 4, 8, 4),
+                Child = new TextBlock
+                {
+                    Text = header,
+                    FontSize = 11,
+                    FontWeight = FontWeight.SemiBold,
+                    Foreground = new SolidColorBrush(color)
+                }
+            };
+            
+            expander.Header = headerBorder;
+            
+            return expander;
+        }
+
         private void ResetDatabase()
         {
             if (_designerDatabase == null || _designCanvas == null) return;
@@ -957,5 +1328,7 @@ private void ImportDesignerYamlToDatabase()
             _designCanvas.Children.Clear();
             UpdateYamlEditor();
         }
+
+
     }
 }
