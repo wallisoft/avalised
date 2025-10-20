@@ -1,0 +1,201 @@
+name: "ConfigUI - Visual YAML Designer"
+file_path: "DESIGNER_MODE"
+run_as_sudo: false
+
+window:
+  width: 1200
+  height: 800
+  title: "ConfigUI Designer - Build YAML Visually"
+
+fields:
+  # Toolbar
+  - name: "label_toolbar"
+    type: "label"
+    text: "🎨 Visual Designer - Right-click canvas to add controls, right-click controls to edit"
+    position: {x: 20, y: 10, width: 1160, height: 30}
+    
+  # Control Palette
+  - name: "label_palette"
+    type: "label"
+    text: "Control Palette:"
+    position: {x: 20, y: 50, width: 120, height: 25}
+    
+  - name: "add_textbox"
+    type: "button"
+    text: "📝 TextBox"
+    position: {x: 20, y: 80, width: 100, height: 30}
+    on_click: |
+      #!/bin/bash
+      set_control "control_type" "textbox"
+      set_control "status" "Click on canvas to place TextBox"
+      
+  - name: "add_button"
+    type: "button"
+    text: "🔘 Button"
+    position: {x: 130, y: 80, width: 100, height: 30}
+    on_click: |
+      #!/bin/bash
+      set_control "control_type" "button"
+      set_control "status" "Click on canvas to place Button"
+      
+  - name: "add_label"
+    type: "button"
+    text: "🏷️ Label"
+    position: {x: 240, y: 80, width: 100, height: 30}
+    on_click: |
+      #!/bin/bash
+      set_control "control_type" "label"
+      set_control "status" "Click on canvas to place Label"
+      
+  - name: "add_combobox"
+    type: "button"
+    text: "📋 ComboBox"
+    position: {x: 350, y: 80, width: 100, height: 30}
+    
+  - name: "add_checkbox"
+    type: "button"
+    text: "☑️ CheckBox"
+    position: {x: 460, y: 80, width: 100, height: 30}
+    
+  - name: "add_datagrid"
+    type: "button"
+    text: "📊 DataGrid"
+    position: {x: 570, y: 80, width: 100, height: 30}
+    
+  # Properties panel (right side)
+  - name: "label_properties"
+    type: "label"
+    text: "Properties"
+    position: {x: 900, y: 120, width: 280, height: 30}
+    
+  - name: "prop_name"
+    type: "label"
+    text: "Name:"
+    position: {x: 900, y: 160, width: 60, height: 25}
+    
+  - name: "prop_name_value"
+    type: "textbox"
+    position: {x: 970, y: 160, width: 200, height: 30}
+    
+  - name: "prop_type"
+    type: "label"
+    text: "Type:"
+    position: {x: 900, y: 200, width: 60, height: 25}
+    
+  - name: "prop_type_value"
+    type: "combobox"
+    position: {x: 970, y: 200, width: 200, height: 30}
+    on_load: |
+      #!/bin/bash
+      echo "textbox"
+      echo "button"
+      echo "label"
+      echo "combobox"
+      echo "checkbox"
+      echo "datagrid"
+      
+  - name: "prop_x"
+    type: "label"
+    text: "X:"
+    position: {x: 900, y: 240, width: 30, height: 25}
+    
+  - name: "prop_x_value"
+    type: "textbox"
+    position: {x: 940, y: 240, width: 60, height: 30}
+    
+  - name: "prop_y"
+    type: "label"
+    text: "Y:"
+    position: {x: 1010, y: 240, width: 30, height: 25}
+    
+  - name: "prop_y_value"
+    type: "textbox"
+    position: {x: 1050, y: 240, width: 60, height: 30}
+    
+  - name: "prop_width"
+    type: "label"
+    text: "Width:"
+    position: {x: 900, y: 280, width: 60, height: 25}
+    
+  - name: "prop_width_value"
+    type: "textbox"
+    position: {x: 970, y: 280, width: 100, height: 30}
+    
+  - name: "prop_height"
+    type: "label"
+    text: "Height:"
+    position: {x: 900, y: 320, width: 60, height: 25}
+    
+  - name: "prop_height_value"
+    type: "textbox"
+    position: {x: 970, y: 320, width: 100, height: 30}
+    
+  - name: "prop_text"
+    type: "label"
+    text: "Text/Label:"
+    position: {x: 900, y: 360, width: 80, height: 25}
+    
+  - name: "prop_text_value"
+    type: "textbox"
+    position: {x: 990, y: 360, width: 180, height: 30}
+    
+  - name: "edit_onclick"
+    type: "button"
+    text: "📝 Edit OnClick Script"
+    position: {x: 900, y: 410, width: 270, height: 35}
+    on_click: |
+      #!/bin/bash
+      # TODO: Open script editor
+      show_message "Script editor coming soon!\nFor now, edit YAML directly."
+      
+  - name: "edit_onload"
+    type: "button"
+    text: "📝 Edit OnLoad Script"
+    position: {x: 900, y: 455, width: 270, height: 35}
+    
+  - name: "delete_control"
+    type: "button"
+    text: "🗑️ Delete Control"
+    position: {x: 900, y: 510, width: 270, height: 35}
+    
+  # Save/Export
+  - name: "save_yaml"
+    type: "button"
+    text: "💾 Export to YAML"
+    position: {x: 900, y: 650, width: 270, height: 40}
+    on_click: |
+      #!/bin/bash
+      OUTPUT_FILE=$(zenity --file-selection --save --filename="new-config.yaml" --title="Save YAML Config")
+      
+      if [ -n "$OUTPUT_FILE" ]; then
+        # TODO: Generate YAML from current controls
+        cat > "$OUTPUT_FILE" << YAMLOUT
+      name: "New Configuration"
+      file_path: "/path/to/config"
+      
+      window:
+        width: 800
+        height: 600
+        title: "My Config Editor"
+      
+      fields:
+        # Controls will be generated here
+        - name: "example"
+          type: "textbox"
+          position: {x: 10, y: 10, width: 200, height: 30}
+      YAMLOUT
+        
+        set_control "status" "✓ YAML exported to: $OUTPUT_FILE"
+        show_message "YAML saved!\n\nOpen with: File → Edit YAML"
+      fi
+      
+  # Canvas area (for visual design)
+  - name: "canvas_info"
+    type: "label"
+    text: "🎨 Design Canvas (right-click to add controls) - Coming in next commit!"
+    position: {x: 20, y: 120, width: 860, height: 600}
+    
+  - name: "status"
+    type: "label"
+    text: "Visual designer POC - Click palette buttons to select control type"
+    position: {x: 20, y: 730, width: 860, height: 30}

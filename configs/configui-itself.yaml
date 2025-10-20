@@ -1,0 +1,120 @@
+name: "ConfigUI - Edit This Application"
+file_path: "THIS_IS_META"
+run_as_sudo: false
+
+window:
+  width: 900
+  height: 650
+  title: "ConfigUI - About This Application"
+
+menus:
+  - text: "File"
+    items:
+      - text: "Open Settings"
+        on_click: |
+          #!/bin/bash
+          # Launch settings in new instance
+          dotnet run -- configs/configui-settings.yaml &
+          
+      - text: "Reload This Config"
+        on_click: |
+          #!/bin/bash
+          # Trigger reload
+          set_control "status" "Config reloaded!"
+
+fields:
+  - name: "label_about"
+    type: "label"
+    text: "🎨 ConfigUI - Universal Configuration Editor"
+    position: {x: 20, y: 20, width: 860, height: 40}
+    
+  - name: "label_tagline"
+    type: "label"
+    text: "The best config editor is the one you don't have to write"
+    position: {x: 20, y: 70, width: 860, height: 25}
+    
+  - name: "label_description"
+    type: "label"
+    text: "ConfigUI generates GUI editors from YAML with bash scripting. This window was created from configs/configui-itself.yaml!"
+    position: {x: 20, y: 105, width: 860, height: 40}
+    
+  - name: "label_stats"
+    type: "label"
+    text: "📊 Application Statistics"
+    position: {x: 20, y: 160, width: 860, height: 30}
+    
+  - name: "stat_configs"
+    type: "label"
+    text: "Loading..."
+    position: {x: 40, y: 200, width: 400, height: 25}
+    on_load: |
+      #!/bin/bash
+      COUNT=$(find configs -name "*.yaml" -o -name "*.yml" | wc -l)
+      set_control "stat_configs" "Available configs: $COUNT"
+      
+  - name: "stat_controls"
+    type: "label"
+    text: "Supported controls: 6 (textbox, button, label, combobox, datagrid, checkbox)"
+    position: {x: 40, y: 230, width: 600, height: 25}
+    
+  - name: "label_included"
+    type: "label"
+    text: "📦 Included Configurations"
+    position: {x: 20, y: 275, width: 860, height: 30}
+    
+  - name: "configs_grid"
+    type: "datagrid"
+    position: {x: 40, y: 315, width: 820, height: 220}
+    columns:
+      - name: "name"
+        header: "Config"
+        width: 200
+      - name: "path"
+        header: "File"
+        width: 300
+      - name: "description"
+        header: "Description"
+        width: 300
+    on_load: |
+      #!/bin/bash
+      echo "Hosts Editor,configs/system/hosts-editor.yaml,Edit /etc/hosts with validation"
+      echo "Backup Manager,configs/user/backup-manager.yaml,Manage rsync backup jobs"
+      echo "bkup Config,configs/user/bkup-config.yaml,Configure smart backup tool"
+      echo "nginx vHosts,configs/system/nginx-vhost.yaml,Create virtual hosts"
+      echo "ConfigUI Settings,configs/configui-settings.yaml,Application preferences"
+      echo "This Window!,configs/configui-itself.yaml,Meta - ConfigUI editing itself"
+      
+  - name: "open_config"
+    type: "button"
+    text: "📂 Open Selected Config"
+    position: {x: 40, y: 555, width: 180, height: 35}
+    on_click: |
+      #!/bin:bash
+      PATH=$(get_selected_value "configs_grid" "path")
+      if [ -n "$PATH" ]; then
+        dotnet run -- "$PATH" &
+      fi
+      
+  - name: "edit_selected"
+    type: "button"
+    text: "✏️ Edit Selected YAML"
+    position: {x: 240, y: 555, width: 180, height: 35}
+    on_click: |
+      #!/bin/bash
+      CONFIG_FILE="$HOME/.config/configui/settings.conf"
+      EDITOR="code"
+      
+      if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+        EDITOR="${default_editor:-code}"
+      fi
+      
+      PATH=$(get_selected_value "configs_grid" "path")
+      if [ -n "$PATH" ]; then
+        $EDITOR "$PATH" &
+      fi
+      
+  - name: "status"
+    type: "label"
+    text: "This UI was generated from YAML. View source: configs/configui-itself.yaml"
+    position: {x: 40, y: 605, width: 820, height: 30}

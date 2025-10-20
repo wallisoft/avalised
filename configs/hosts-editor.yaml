@@ -1,0 +1,155 @@
+name: "Linux Hosts File Editor"
+file_path: "/etc/hosts"
+run_as_sudo: true
+
+window:
+  width: 900
+  height: 600
+  title: "Hosts File Manager"
+
+# Fields for adding new entries
+fields:
+  - name: "label_ip"
+    type: "label"
+    text: "IP Address:"
+    position:
+      x: 20
+      y: 20
+      width: 100
+      height: 25
+      
+  - name: "ip_dropdown"
+    type: "combobox"
+    position:
+      x: 120
+      y: 20
+      width: 150
+      height: 30
+    on_load: |
+      #!/bin/bash
+      # Extract unique IPs from /etc/hosts
+      grep -v '^#' /etc/hosts | grep -v '^$' | awk '{print $1}' | sort -u
+      
+  - name: "label_hostname"
+    type: "label"
+    text: "Hostname:"
+    position:
+      x: 290
+      y: 20
+      width: 100
+      height: 25
+      
+  - name: "hostname_dropdown"
+    type: "combobox"
+    position:
+      x: 390
+      y: 20
+      width: 200
+      height: 30
+    on_load: |
+      #!/bin/bash
+      # Extract unique hostnames from /etc/hosts
+      grep -v '^#' /etc/hosts | grep -v '^$' | awk '{for(i=2;i<=NF;i++) print $i}' | sort -u
+      
+  - name: "add_button"
+    type: "button"
+    text: "Add Entry"
+    position:
+      x: 610
+      y: 20
+      width: 100
+      height: 30
+    on_click: |
+      #!/bin/bash
+      IP=$(get_control "ip_dropdown")
+      HOST=$(get_control "hostname_dropdown")
+      
+      # Validate
+      if [[ -z "$IP" || -z "$HOST" ]]; then
+        show_message "Both IP and hostname required!"
+        exit 1
+      fi
+      
+      # Check if IP is valid
+      if [[ ! $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        show_message "Invalid IP address format!"
+        exit 1
+      fi
+      
+      # Add to hosts file
+      echo "$IP    $HOST" >> /etc/hosts
+      
+      # Update status and refresh grid
+      set_control "status" "✓ Added: $IP -> $HOST"
+      set_control "ip_dropdown" ""
+      set_control "hostname_dropdown" ""
+      
+      # Refresh the data grid
+      refresh_control "hosts_grid"
+      
+  - name: "refresh_button"
+    type: "button"
+    text: "Reload File"
+    position:
+      x: 730
+      y: 20
+      width: 100
+      height: 30
+    on_click: |
+      #!/bin/bash
+      refresh_control "hosts_grid"
+      set_control "status" "Reloaded /etc/hosts"
+      
+  # Data grid showing current hosts file
+  - name: "hosts_grid"
+    type: "datagrid"
+    position:
+      x: 20
+      y: 70
+      width: 860
+      height: 450
+    columns:
+      - name: "ip"
+        header: "IP Address"
+        width: 150
+      - name: "hostname"
+        header: "Hostname"
+        width: 250
+      - name: "comment"
+        header: "Comment"
+        width: 400
+    on_load: |
+      #!/bin/bash
+      # Parse /etc/hosts and output as CSV
+      grep -v '^$' /etc/hosts | while IFS= read -r line; do
+        if [[ $line =~ ^#.*$ ]]; then
+          # Comment line
+          echo ",,${line}"
+        else
+          # Parse IP, hostname, and optional comment
+          IP=$(echo "$line" | awk '{print $1}')
+          HOST=$(echo "$line" | awk '{print $2}')
+          COMMENT=$(echo "$line" | sed 's/^[^ ]* *[^ ]* *//')
+          echo "$IP,$HOST,$COMMENT"
+        fi
+      done
+    on_row_delete: |
+      #!/bin/bash
+      # Get selected row data
+      IP=$(get_selected_value "hosts_grid" "ip")
+      HOST=$(get_selected_value "hosts_grid" "hostname")
+      
+      # Remove from hosts file
+      sed -i "/^${IP}[[:space:]]*${HOST}/d" /etc/hosts
+      
+      set_control "status" "✗ Deleted: $IP -> $HOST"
+      refresh_control "hosts_grid"
+      
+  - name: "status"
+    type: "label"
+    text: "Ready"
+    position:
+      x: 20
+      y: 540
+      width: 860
+      height: 30

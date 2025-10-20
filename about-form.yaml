@@ -1,0 +1,84 @@
+window:
+  width: 600
+  height: 420
+  title: "About Visualised"
+  background_color: "#f0f0f0"
+  show_loading_splash: false
+
+controls:
+  - type: label
+    name: Title
+    caption: "VISUALISED"
+    x: 50
+    y: 30
+    width: 500
+    height: 40
+    font_size: 24
+    font_bold: true
+    foreground_color: "#0066cc"
+    alignment: center
+  
+  - type: label
+    name: Version
+    caption: "Form Designer v1.0.0-rc1"
+    x: 50
+    y: 75
+    width: 500
+    height: 25
+    font_size: 14
+    foreground_color: "#666666"
+    alignment: center
+  
+  - type: label
+    name: Tagline
+    caption: "The RAD IDE That Builds Itself"
+    x: 50
+    y: 105
+    width: 500
+    height: 25
+    font_size: 12
+    font_bold: true
+    foreground_color: "#333333"
+    alignment: center
+  
+  - type: panel
+    name: StoryPanel
+    x: 50
+    y: 145
+    width: 500
+    height: 180
+    background_color: "#ffffff"
+    border_color: "#cccccc"
+    border_thickness: 1
+    controls:
+      - type: label
+        name: Story
+        caption: "Built by Steve Wallis with Claude (Anthropic)\n\nWhat AI-human collaboration can achieve:\nThis complete RAD IDE built in 24 days.\n\nThis designer was built WITH ITSELF - the engine\nloading its own interface from visual-designer.yaml.\nThat's not just recursion, that's poetry.\n\nLanguage-agnostic. Bash today, Python tomorrow.\nCustom controls. Live preview. Patent applied for.\n\nFrom little acorns, mighty oaks grow. 🌳"
+        x: 20
+        y: 15
+        width: 460
+        height: 150
+        font_size: 11
+        foreground_color: "#333333"
+        alignment: center
+  
+  - type: label
+    name: Copyright
+    caption: "© 2025 Visualised • UK Patent Applied For"
+    x: 50
+    y: 340
+    width: 500
+    height: 20
+    font_size: 9
+    foreground_color: "#999999"
+    alignment: center
+  
+  - type: button
+    name: CloseButton
+    caption: "Close"
+    x: 250
+    y: 370
+    width: 100
+    height: 30
+    background_color: "#4CAF50"
+    foreground_color: "White"

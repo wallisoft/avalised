@@ -1,0 +1,704 @@
+# Visual Designer UI - Professional Release Version
+# Last Updated: 2025-10-19 - Professional Toolbox Styling
+# Version: 1.0.1
+window:
+  width: 1400
+  height: 900
+  title: "Visualised Markup - Form Designer v1.0"
+  background_color: "#f0f0f0"
+
+controls:
+  - type: menubar
+    name: MainMenu
+    x: 0
+    y: 0
+    width: 1400
+    height: 30
+    items:
+      - header: "File"
+        items:
+          - header: "New Form"
+          - header: "Open Form..."
+          - header: "Reload Form"
+          - header: "Save Form..."
+          - header: "---"
+          - header: "Exit"
+      
+      - header: "Edit"
+        items:
+          - header: "Delete Control"
+          - header: "---"
+          - header: "Select All"
+      
+      - header: "View"
+        items:
+          - header: "Toolbox"
+          - header: "Properties"
+          - header: "YAML Editor"
+      
+      - header: "Help"
+        items:
+          - header: "About"
+          - header: "Documentation"
+
+  - type: panel
+    name: ToolboxPanel
+    x: 0
+    y: 30
+    width: 200
+    height: 870
+    background_color: "#e8e8e8"
+    border_color: "#c0c0c0"
+    border_thickness: 1
+    
+    controls:
+      - type: label
+        name: ToolboxHeader
+        caption: "TOOLBOX"
+        x: 0
+        y: 0
+        width: 200
+        height: 35
+        font_size: 14
+        font_bold: true
+        foreground_color: "#ffffff"
+        background_color: "#2c3e50"
+        alignment: center
+      
+      - type: label
+        name: BasicHeader
+        caption: "BASIC CONTROLS"
+        x: 10
+        y: 45
+        width: 180
+        height: 22
+        font_size: 9
+        font_bold: true
+        foreground_color: "#34495e"
+      
+      - type: button
+        name: AddLabel
+        caption: "Label"
+        x: 10
+        y: 72
+        width: 180
+        height: 28
+        background_color: "#ecf0f1"
+        foreground_color: "#2c3e50"
+      
+      - type: button
+        name: AddButton
+        caption: "Button"
+        x: 10
+        y: 105
+        width: 180
+        height: 28
+        background_color: "#ecf0f1"
+        foreground_color: "#2c3e50"
+      
+      - type: button
+        name: AddTextBox
+        caption: "TextBox"
+        x: 10
+        y: 138
+        width: 180
+        height: 28
+        background_color: "#ecf0f1"
+        foreground_color: "#2c3e50"
+      
+      - type: button
+        name: AddCheckBox
+        caption: "CheckBox"
+        x: 10
+        y: 171
+        width: 180
+        height: 28
+        background_color: "#ecf0f1"
+        foreground_color: "#2c3e50"
+      
+      - type: button
+        name: AddRadioButton
+        caption: "RadioButton"
+        x: 10
+        y: 204
+        width: 180
+        height: 28
+        background_color: "#ecf0f1"
+        foreground_color: "#2c3e50"
+      
+      - type: label
+        name: ListsHeader
+        caption: "LISTS & SELECTION"
+        x: 10
+        y: 242
+        width: 180
+        height: 22
+        font_size: 9
+        font_bold: true
+        foreground_color: "#34495e"
+      
+      - type: button
+        name: AddComboBox
+        caption: "ComboBox"
+        x: 10
+        y: 269
+        width: 180
+        height: 28
+        background_color: "#e8f5e9"
+        foreground_color: "#2c3e50"
+      
+      - type: button
+        name: AddListBox
+        caption: "ListBox"
+        x: 10
+        y: 302
+        width: 180
+        height: 28
+        background_color: "#e8f5e9"
+        foreground_color: "#2c3e50"
+      
+      - type: label
+        name: ContainersHeader
+        caption: "CONTAINERS"
+        x: 10
+        y: 340
+        width: 180
+        height: 22
+        font_size: 9
+        font_bold: true
+        foreground_color: "#34495e"
+      
+      - type: button
+        name: AddPanel
+        caption: "Panel"
+        x: 10
+        y: 367
+        width: 180
+        height: 28
+        background_color: "#fff3e0"
+        foreground_color: "#2c3e50"
+      
+      - type: button
+        name: AddTabControl
+        caption: "TabControl"
+        x: 10
+        y: 400
+        width: 180
+        height: 28
+        background_color: "#fff3e0"
+        foreground_color: "#2c3e50"
+      
+      - type: label
+        name: NavigationHeader
+        caption: "NAVIGATION"
+        x: 10
+        y: 438
+        width: 180
+        height: 22
+        font_size: 9
+        font_bold: true
+        foreground_color: "#34495e"
+      
+      - type: button
+        name: AddMenuBar
+        caption: "MenuBar"
+        x: 10
+        y: 465
+        width: 180
+        height: 28
+        background_color: "#e3f2fd"
+        foreground_color: "#2c3e50"
+      
+      - type: button
+        name: AddToolBar
+        caption: "ToolBar"
+        x: 10
+        y: 498
+        width: 180
+        height: 28
+        background_color: "#e3f2fd"
+        foreground_color: "#2c3e50"
+      
+      - type: label
+        name: FeedbackHeader
+        caption: "FEEDBACK & TIMING"
+        x: 10
+        y: 536
+        width: 180
+        height: 22
+        font_size: 9
+        font_bold: true
+        foreground_color: "#34495e"
+      
+      - type: button
+        name: AddProgressBar
+        caption: "ProgressBar"
+        x: 10
+        y: 563
+        width: 180
+        height: 28
+        background_color: "#f3e5f5"
+        foreground_color: "#2c3e50"
+      
+      - type: button
+        name: AddTimer
+        caption: "Timer"
+        x: 10
+        y: 596
+        width: 180
+        height: 28
+        background_color: "#f3e5f5"
+        foreground_color: "#2c3e50"
+      
+      - type: button
+        name: PreviewButton
+        caption: "▶ PREVIEW FORM"
+        x: 10
+        y: 810
+        width: 180
+        height: 45
+        background_color: "#4CAF50"
+        foreground_color: "White"
+        font_bold: true
+  
+  - type: panel
+    name: CanvasPanel
+    x: 200
+    y: 30
+    width: 900
+    height: 870
+    background_color: "#f5f5f5"
+    
+    controls:
+      - type: label
+        name: CanvasHeader
+        caption: "DESIGN SURFACE"
+        x: 0
+        y: 0
+        width: 900
+        height: 35
+        font_size: 13
+        font_bold: true
+        foreground_color: "#ffffff"
+        background_color: "#34495e"
+        alignment: center
+      
+      - type: panel
+        name: CanvasScrollContainer
+        x: 0
+        y: 35
+        width: 900
+        height: 835
+        background_color: "#f5f5f5"
+        
+        controls:
+          - type: panel
+            name: DesignCanvas
+            x: 50
+            y: 30
+            width: 800
+            height: 600
+            background_color: "#ffffff"
+            border_color: "#000000"
+            border_thickness: 1
+  
+  - type: panel
+    name: PropertiesPanel
+    x: 1100
+    y: 30
+    width: 300
+    height: 500
+    background_color: "#e8e8e8"
+    border_color: "#c0c0c0"
+    border_thickness: 1
+    
+    controls:
+      - type: label
+        name: PropertiesHeader
+        caption: "PROPERTIES"
+        x: 0
+        y: 0
+        width: 300
+        height: 35
+        font_size: 13
+        font_bold: true
+        foreground_color: "#ffffff"
+        background_color: "#34495e"
+        alignment: center
+      
+      - type: label
+        name: SelectedControlLabel
+        caption: "No control selected"
+        x: 10
+        y: 42
+        width: 280
+        height: 20
+        font_size: 10
+        font_bold: true
+        foreground_color: "#0066cc"
+      
+      - type: button
+        name: GroupIdentity
+        caption: "▼ Identity"
+        x: 5
+        y: 70
+        width: 290
+        height: 25
+        background_color: "#c8c8c8"
+        foreground_color: "#000000"
+        font_bold: true
+      
+      - type: panel
+        name: PanelIdentity
+        x: 5
+        y: 95
+        width: 290
+        height: 52
+        background_color: "#f5f5f5"
+        border_color: "#c0c0c0"
+        border_thickness: 1
+        controls:
+          - type: label
+            name: PropNameLabel
+            caption: "Name:"
+            x: 5
+            y: 4
+            width: 70
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropName
+            x: 80
+            y: 3
+            width: 200
+            height: 16
+            font_size: 7
+          - type: label
+            name: PropTypeLabel
+            caption: "Type:"
+            x: 5
+            y: 30
+            width: 70
+            height: 14
+            font_size: 7
+          - type: label
+            name: PropType
+            caption: "label"
+            x: 80
+            y: 30
+            width: 200
+            height: 14
+            font_size: 7
+            foreground_color: "#666666"
+      
+      - type: button
+        name: GroupPosition
+        caption: "▼ Position & Size"
+        x: 5
+        y: 152
+        width: 290
+        height: 25
+        background_color: "#c8c8c8"
+        foreground_color: "#000000"
+        font_bold: true
+      
+      - type: panel
+        name: PanelPosition
+        x: 5
+        y: 177
+        width: 290
+        height: 80
+        background_color: "#f5f5f5"
+        border_color: "#c0c0c0"
+        border_thickness: 1
+        controls:
+          - type: label
+            name: PropXLabel
+            caption: "X:"
+            x: 5
+            y: 4
+            width: 30
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropX
+            x: 40
+            y: 3
+            width: 50
+            height: 16
+            font_size: 7
+          - type: label
+            name: PropYLabel
+            caption: "Y:"
+            x: 100
+            y: 4
+            width: 30
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropY
+            x: 135
+            y: 3
+            width: 50
+            height: 16
+            font_size: 7
+          - type: label
+            name: PropWidthLabel
+            caption: "Width:"
+            x: 5
+            y: 28
+            width: 50
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropWidth
+            x: 60
+            y: 27
+            width: 50
+            height: 16
+            font_size: 7
+          - type: label
+            name: PropHeightLabel
+            caption: "Height:"
+            x: 120
+            y: 28
+            width: 50
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropHeight
+            x: 175
+            y: 27
+            width: 50
+            height: 16
+            font_size: 7
+          - type: checkbox
+            name: PropVisible
+            caption: "Visible"
+            x: 5
+            y: 52
+            width: 80
+            height: 18
+            font_size: 7
+          - type: checkbox
+            name: PropEnabled
+            caption: "Enabled"
+            x: 90
+            y: 52
+            width: 80
+            height: 18
+            font_size: 7
+      
+      - type: button
+        name: GroupAppearance
+        caption: "▼ Appearance"
+        x: 5
+        y: 262
+        width: 290
+        height: 25
+        background_color: "#c8c8c8"
+        foreground_color: "#000000"
+        font_bold: true
+      
+      - type: panel
+        name: PanelAppearance
+        x: 5
+        y: 287
+        width: 290
+        height: 130
+        background_color: "#f5f5f5"
+        border_color: "#c0c0c0"
+        border_thickness: 1
+        controls:
+          - type: label
+            name: PropCaptionLabel
+            caption: "Caption:"
+            x: 5
+            y: 4
+            width: 70
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropCaption
+            x: 80
+            y: 3
+            width: 200
+            height: 16
+            font_size: 7
+          - type: label
+            name: PropTextLabel
+            caption: "Text:"
+            x: 5
+            y: 28
+            width: 70
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropText
+            x: 80
+            y: 27
+            width: 200
+            height: 16
+            font_size: 7
+          - type: label
+            name: PropBgColorLabel
+            caption: "BgColor:"
+            x: 5
+            y: 52
+            width: 70
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropBackgroundColor
+            x: 80
+            y: 51
+            width: 200
+            height: 16
+            font_size: 7
+            placeholder: "#FFFFFF"
+          - type: label
+            name: PropFgColorLabel
+            caption: "FgColor:"
+            x: 5
+            y: 76
+            width: 70
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropForegroundColor
+            x: 80
+            y: 75
+            width: 200
+            height: 16
+            font_size: 7
+            placeholder: "#000000"
+          - type: label
+            name: PropAlignmentLabel
+            caption: "Alignment:"
+            x: 5
+            y: 100
+            width: 70
+            height: 14
+            font_size: 7
+          - type: combobox
+            name: PropAlignment
+            x: 80
+            y: 99
+            width: 200
+            height: 16
+            items:
+              - "Left"
+              - "Center"
+              - "Right"
+            selected_index: 0
+      
+      - type: button
+        name: GroupFont
+        caption: "▼ Font"
+        x: 5
+        y: 422
+        width: 290
+        height: 25
+        background_color: "#c8c8c8"
+        foreground_color: "#000000"
+        font_bold: true
+      
+      - type: panel
+        name: PanelFont
+        x: 5
+        y: 447
+        width: 290
+        height: 52
+        background_color: "#f5f5f5"
+        border_color: "#c0c0c0"
+        border_thickness: 1
+        controls:
+          - type: label
+            name: PropFontFamilyLabel
+            caption: "Family:"
+            x: 5
+            y: 4
+            width: 70
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropFontFamily
+            x: 80
+            y: 3
+            width: 200
+            height: 16
+            font_size: 7
+            placeholder: "Arial"
+          - type: label
+            name: PropFontSizeLabel
+            caption: "Size:"
+            x: 5
+            y: 28
+            width: 70
+            height: 14
+            font_size: 7
+          - type: textbox
+            name: PropFontSize
+            x: 80
+            y: 27
+            width: 50
+            height: 16
+            font_size: 7
+          - type: checkbox
+            name: PropFontBold
+            caption: "Bold"
+            x: 140
+            y: 27
+            width: 130
+            height: 16
+            font_size: 7
+
+  - type: panel
+    name: EditorPanel
+    x: 1100
+    y: 530
+    width: 300
+    height: 370
+    background_color: "#e8e8e8"
+    border_color: "#c0c0c0"
+    border_thickness: 1
+    visible: true
+    
+    controls:
+      - type: label
+        name: YamlEditorHeader
+        caption: "YAML OUTPUT"
+        x: 0
+        y: 0
+        width: 300
+        height: 30
+        font_size: 12
+        font_bold: true
+        foreground_color: "#ffffff"
+        background_color: "#34495e"
+        alignment: center
+      
+      - type: textbox
+        name: YamlEditor
+        text: "# Design controls appear here as YAML"
+        x: 5
+        y: 35
+        width: 290
+        height: 295
+        multiline: true
+        readonly: true
+        font_family: "Consolas,Monaco,monospace"
+        font_size: 8
+        background_color: "#ffffff"
+        foreground_color: "#000000"
+      
+      - type: button
+        name: ExportYaml
+        caption: "💾 EXPORT YAML"
+        x: 5
+        y: 335
+        width: 290
+        height: 30
+        background_color: "#2196F3"
+        foreground_color: "White"
+        font_bold: true

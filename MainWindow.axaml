@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ConfigUI.MainWindow"
+        Title="ConfigUI"
+        Width="800"
+        Height="600">
+    
+    <Grid>
+        <!-- Splash Screen -->
+        <Border Name="SplashScreen" Background="#1E1E1E" IsVisible="true">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="ConfigUI" FontSize="32" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                <TextBlock Text="Loading..." FontSize="16" Foreground="#CCCCCC" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Canvas (hidden initially) -->
+        <Canvas Name="MainCanvas" Background="Transparent" IsVisible="false" />
+    </Grid>
+</Window>

@@ -1,0 +1,115 @@
+name: "ConfigUI Settings"
+file_path: "~/.config/configui/settings.conf"
+run_as_sudo: false
+
+window:
+  width: 600
+  height: 400
+  title: "ConfigUI - Preferences"
+
+fields:
+  - name: "label_editor"
+    type: "label"
+    text: "🛠️ Editor Settings"
+    position: {x: 20, y: 20, width: 560, height: 30}
+    
+  - name: "label_default_editor"
+    type: "label"
+    text: "Default YAML editor:"
+    position: {x: 40, y: 60, width: 150, height: 25}
+    
+  - name: "default_editor"
+    type: "combobox"
+    position: {x: 200, y: 60, width: 200, height: 30}
+    on_load: |
+      #!/bin/bash
+      echo "code (VS Code)"
+      echo "nano"
+      echo "vim"
+      echo "gedit"
+      echo "kate"
+      
+  - name: "label_config_dir"
+    type: "label"
+    text: "Default config directory:"
+    position: {x: 40, y: 100, width: 150, height: 25}
+    
+  - name: "config_dir"
+    type: "textbox"
+    position: {x: 200, y: 100, width: 300, height: 30}
+    
+  - name: "browse_config_dir"
+    type: "button"
+    text: "Browse..."
+    position: {x: 510, y: 100, width: 70, height: 30}
+    on_click: |
+      #!/bin/bash
+      DIR=$(zenity --file-selection --directory --title="Select Default Config Directory")
+      if [ -n "$DIR" ]; then
+        set_control "config_dir" "$DIR"
+      fi
+      
+  - name: "show_hidden"
+    type: "checkbox"
+    text: "Show hidden files in file picker"
+    position: {x: 40, y: 145, width: 250, height: 25}
+    
+  - name: "label_appearance"
+    type: "label"
+    text: "🎨 Appearance"
+    position: {x: 20, y: 185, width: 560, height: 30}
+    
+  - name: "theme"
+    type: "combobox"
+    position: {x: 40, y: 225, width: 200, height: 30}
+    on_load: |
+      #!/bin/bash
+      echo "Light"
+      echo "Dark"
+      echo "System"
+      
+  - name: "save_button"
+    type: "button"
+    text: "💾 Save Settings"
+    position: {x: 40, y: 300, width: 150, height: 35}
+    on_click: |
+      #!/bin/bash
+      CONFIG_DIR="$HOME/.config/configui"
+      CONFIG_FILE="$CONFIG_DIR/settings.conf"
+      
+      mkdir -p "$CONFIG_DIR"
+      
+      cat > "$CONFIG_FILE" << CONFEND
+      default_editor=$(get_control "default_editor" | cut -d' ' -f1)
+      config_directory=$(get_control "config_dir")
+      show_hidden_files=$(get_control "show_hidden")
+      theme=$(get_control "theme")
+      CONFEND
+      
+      set_control "status" "✓ Settings saved to $CONFIG_FILE"
+      
+  - name: "status"
+    type: "label"
+    text: "Modify settings and click Save"
+    position: {x: 40, y: 350, width: 540, height: 30}
+    
+  - name: "loader"
+    type: "label"
+    text: ""
+    position: {x: -100, y: -100, width: 1, height: 1}
+    on_load: |
+      #!/bin/bash
+      CONFIG_FILE="$HOME/.config/configui/settings.conf"
+      
+      if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+        set_control "default_editor" "${default_editor:-code} (VS Code)"
+        set_control "config_dir" "${config_directory:-./configs}"
+        set_control "show_hidden" "${show_hidden_files:-true}"
+        set_control "theme" "${theme:-System}"
+      else
+        set_control "default_editor" "code (VS Code)"
+        set_control "config_dir" "./configs"
+        set_control "show_hidden" "true"
+        set_control "theme" "System"
+      fi
