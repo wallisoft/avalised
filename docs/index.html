@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualised - Language-Agnostic RAD IDE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        
+        .hero p {
+            font-size: 1.4em;
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .feature {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        
+        .feature h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .pricing {
+            background: #f8f9fa;
+            padding: 60px 20px;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 40px auto 0;
+        }
+        
+        .pricing-card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .pricing-card.featured {
+            border: 3px solid #667eea;
+            transform: scale(1.05);
+        }
+        
+        .price {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        
+        .price-note {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .features-list {
+            text-align: left;
+            margin: 20px 0;
+        }
+        
+        .features-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .footer-links {
+            margin-top: 20px;
+        }
+        
+        .footer-links a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🌳 Visualised</h1>
+        <p>Language-Agnostic RAD IDE<br>Build GUI forms visually. Export to any format. Run in any language.</p>
+        <div class="cta-buttons">
+            <a href="https://github.com/wallisoft/visualised/releases" class="btn btn-primary">Download v1.0</a>
+            <a href="https://github.com/wallisoft/visualised" class="btn btn-secondary">View on GitHub</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 20px;">Why Visualised?</h2>
+        <p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 60px;">
+            No vendor lock-in. No subscriptions. No cloud dependencies. True portability.
+        </p>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <h3>Visual Designer</h3>
+                <p>Drag & drop form builder. 15+ controls. Real-time preview. No coding required.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔄</div>
+                <h3>Export Anywhere</h3>
+                <p>YAML, JSON, XML, C#, Python, JavaScript, Bash. One design, 7+ formats.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🗄️</div>
+                <h3>SQLite Powered</h3>
+                <p>Local persistence. No cloud. Your data never leaves your machine.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">📝</div>
+                <h3>Script Editor</h3>
+                <p>Write scripts in ANY language. Python, C#, Bash, JavaScript. True freedom.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">♻️</div>
+                <h3>Self-Designing</h3>
+                <p>The designer designs itself. Load visual-designer.yaml and edit the tool!</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🌍</div>
+                <h3>Cross-Platform</h3>
+                <p>Linux, Windows, macOS. Built with Avalonia UI. Runs everywhere.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="pricing">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 20px;">Pricing</h2>
+            <p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 40px;">
+                Free for individuals. Fair pricing for businesses.
+            </p>
+
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Free</h3>
+                    <div class="price">£0</div>
+                    <div class="price-note">Forever</div>
+                    <ul class="features-list">
+                        <li>✅ Full designer access</li>
+                        <li>✅ All export formats</li>
+                        <li>✅ SQLite persistence</li>
+                        <li>✅ Script editor</li>
+                        <li>✅ Personal use</li>
+                        <li>✅ < 10 employees</li>
+                        <li>✅ MIT License</li>
+                    </ul>
+                    <a href="https://github.com/wallisoft/visualised/releases" class="btn btn-primary" style="margin-top: 20px;">Download</a>
+                </div>
+
+                <div class="pricing-card featured">
+                    <h3>Startup</h3>
+                    <div class="price">£500</div>
+                    <div class="price-note">per year</div>
+                    <ul class="features-list">
+                        <li>✅ Everything in Free</li>
+                        <li>✅ 10-50 employees</li>
+                        <li>✅ Priority email support</li>
+                        <li>✅ Commercial license</li>
+                        <li>✅ Legal indemnification</li>
+                        <li>✅ Early feature access</li>
+                    </ul>
+                    <a href="mailto:wallisoft@gmail.com?subject=Visualised Startup License" class="btn btn-primary" style="margin-top: 20px;">Contact Sales</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Growth</h3>
+                    <div class="price">£2,500</div>
+                    <div class="price-note">per year</div>
+                    <ul class="features-list">
+                        <li>✅ Everything in Startup</li>
+                        <li>✅ 51-250 employees</li>
+                        <li>✅ Dedicated Slack channel</li>
+                        <li>✅ Training sessions</li>
+                        <li>✅ Custom features</li>
+                        <li>✅ Consulting hours</li>
+                    </ul>
+                    <a href="mailto:wallisoft@gmail.com?subject=Visualised Growth License" class="btn btn-primary" style="margin-top: 20px;">Contact Sales</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">£10k+</div>
+                    <div class="price-note">per year</div>
+                    <ul class="features-list">
+                        <li>✅ Everything in Growth</li>
+                        <li>✅ 251+ employees</li>
+                        <li>✅ On-site training</li>
+                        <li>✅ Dedicated support</li>
+                        <li>✅ Roadmap influence</li>
+                        <li>✅ Custom development</li>
+                        <li>✅ Volume licensing</li>
+                    </ul>
+                    <a href="mailto:wallisoft@gmail.com?subject=Visualised Enterprise License" class="btn btn-primary" style="margin-top: 20px;">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 40px;">Quick Start</h2>
+        
+        <div style="background: #f8f9fa; padding: 40px; border-radius: 10px;">
+            <h3>Linux (Debian/Ubuntu)</h3>
+            <pre style="background: #2d2d2d; color: #f8f8f2; padding: 20px; border-radius: 5px; overflow-x: auto;">
+# Install .NET 9
+sudo apt install dotnet-sdk-9.0
+
+# Clone and run
+git clone https://github.com/wallisoft/visualised.git
+cd visualised
+dotnet build
+dotnet run -- --designer
+            </pre>
+            
+            <h3 style="margin-top: 30px;">macOS / Windows</h3>
+            <p>Download from <a href="https://github.com/wallisoft/visualised/releases">GitHub Releases</a></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Steve Wallis. MIT License (personal use) / Commercial License (business use)</p>
+        <p style="margin-top: 10px; font-style: italic;">"From little acorns, mighty oaks grow" 🌳</p>
+        <div class="footer-links">
+            <a href="https://github.com/wallisoft/visualised">GitHub</a>
+            <a href="https://github.com/wallisoft/visualised/issues">Issues</a>
+            <a href="mailto:wallisoft@gmail.com">Contact</a>
+            <a href="mailto:wallisoft@gmail.com?subject=Commercial License">Commercial Licensing</a>
+        </div>
+    </footer>
+</body>
+</html>
