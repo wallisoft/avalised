@@ -1,0 +1,121 @@
+VISUALISED COMMERCIAL LICENSE AGREEMENT
+Version 1.0 - October 2025
+
+This Commercial License Agreement ("Agreement") is between:
+- Licensor: Steve Wallis ("Wallisoft")
+- Licensee: [COMPANY NAME]
+
+1. GRANT OF LICENSE
+
+Subject to payment of the applicable license fee and compliance with this 
+Agreement, Licensor grants Licensee a non-exclusive, non-transferable license 
+to use Visualised ("Software") for commercial purposes.
+
+2. LICENSE TIERS
+
+STARTUP TIER (£500/year)
+- Organizations with 10-50 employees
+- Commercial use permitted
+- Priority email support
+- Legal indemnification
+- Early feature access
+
+GROWTH TIER (£2,500/year)
+- Organizations with 51-250 employees
+- All Startup tier benefits
+- Dedicated Slack/Discord channel
+- Training sessions (4 hours/year)
+- Custom feature requests
+- Consulting hours (8 hours/year)
+
+ENTERPRISE TIER (£10,000+/year)
+- Organizations with 251+ employees
+- All Growth tier benefits
+- On-site training available
+- Dedicated support representative
+- Roadmap influence
+- Custom development services
+- Volume licensing available
+
+3. PERMITTED USE
+
+Licensee may:
+- Use the Software for commercial purposes
+- Deploy on unlimited internal machines
+- Create and distribute applications built with the Software
+- Modify the Software for internal use
+
+4. RESTRICTIONS
+
+Licensee may NOT:
+- Resell or redistribute the Software itself
+- Remove copyright notices
+- Use the Software to build competing products
+- Sublicense the Software to third parties
+
+5. SUPPORT & UPDATES
+
+- Email support response: within 48 hours (business days)
+- Software updates included during license term
+- Security patches provided promptly
+- Feature requests considered based on tier
+
+6. TERM & RENEWAL
+
+- License term: 12 months from payment date
+- Auto-renewal unless cancelled 30 days before expiration
+- Pricing locked for 24 months from initial purchase
+- Perpetual license option available (contact for pricing)
+
+7. PAYMENT TERMS
+
+- Annual payment due in advance
+- Accepted methods: Bank transfer, PayPal, Stripe
+- Invoice provided upon payment
+- VAT/GST added where applicable
+
+8. WARRANTY & LIABILITY
+
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND.
+IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY DAMAGES ARISING FROM USE.
+Maximum liability limited to fees paid in the 12 months prior to claim.
+
+9. TERMINATION
+
+License terminates if:
+- Payment not received within 30 days of due date
+- Material breach of this Agreement
+- Licensee exceeds employee count for tier (30-day grace to upgrade)
+
+Upon termination:
+- Licensee must cease commercial use
+- Personal use reverts to MIT License terms
+- No refund of pro-rated fees
+
+10. LEGAL
+
+- Governed by laws of England and Wales
+- Disputes resolved in Eastbourne, England
+- This Agreement supersedes all prior agreements
+
+11. CONTACT
+
+Email: wallisoft@gmail.com
+Website: https://visualised.org
+GitHub: https://github.com/wallisoft/visualised
+
+---
+
+ACCEPTANCE
+
+By using Visualised for commercial purposes with 10+ employees, 
+Licensee agrees to these terms and will purchase appropriate license 
+within 30 days of first commercial use.
+
+To purchase a license, email: wallisoft@gmail.com
+
+---
+
+"From little acorns, mighty oaks grow" 🌳
+
+Copyright © 2025 Steve Wallis. All rights reserved.
