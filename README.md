@@ -271,44 +271,38 @@ Compare to alternatives:
 
 ## Roadmap
 
-### v1.0 - The Foundation ✅ (January 2025)
+### v1.0 - The Foundation ✅ (October 2025)
 - Visual form builder
 - 15+ control types
 - Multi-format export (7+ formats)
 - SQLite persistence
 - Script editor with multi-language support
 - Self-designing capability
+- **Working runtime engine - load and execute YAML forms!**
 
-### v1.1 - Polish (February-March 2025)
+### v1.1 - Polish (November-December 2025)
 - Resize handles for controls
 - Alignment tools (snap, distribute, align)
 - Undo/redo system
 - Templates library
 - Improved properties panel
 - Keyboard shortcuts
+- Better error handling
 
-### v1.2 - Runtime (April-June 2025)
-- Form runtime engine
-- Load and execute exported forms
-- Cross-platform deployment
-- Standalone executables
-- Complete RAD environment
+### v1.2 - Standalone Deployment (Q1 2026)
+- Package forms as standalone executables
+- Self-contained runtime (no .NET required)
+- Cross-platform installers
+- Desktop shortcuts
+- System tray integration
 
-### v2.0 - Advanced (July-December 2025)
+### v2.0 - Advanced (Q2-Q3 2026)
 - Additional control types (TreeView, DataGrid, etc.)
 - Custom control designer
 - Theme system
 - Plugin architecture
 - Visual scripting (low-code)
 - Multi-window applications
-
-### v3.0 - Platform (2026+)
-- Web-based designer
-- Cloud storage (optional)
-- Marketplace for forms/controls
-- Collaborative editing
-- Mobile runtime (Android/iOS)
-- Community hub
 
 ## Vision
 
@@ -332,7 +326,7 @@ Visualised was born from frustration.
 
 **It shouldn't be this hard.**
 
-In late 2024, Steve Wallis (60-year-old developer from Eastbourne) and Claude (Anthropic AI) started talking about RAD tools. About Visual Basic's democratization of Windows development. About bash scripts that needed GUIs. About vendor lock-in and VC-funded subscription hell.
+In late 2025, Steve Wallis (60-year-old developer from Eastbourne) and Claude (Anthropic AI) started talking about RAD tools. About Visual Basic's democratization of Windows development. About bash scripts that needed GUIs. About vendor lock-in and VC-funded subscription hell.
 
 **We decided to build something different.**
 
@@ -344,7 +338,6 @@ Something truly portable. Something language-agnostic. Something that could desi
 
 Built by two anonymous entities (one meat-based, one silicon-based) who believe software should empower users, not exploit them.
 
-**"From little acorns, mighty oaks grow." 🌳**
 
 ## Credits
 
@@ -369,9 +362,9 @@ Built by two anonymous entities (one meat-based, one silicon-based) who believe 
 ## Support & Community
 
 ### Getting Help
-- **Documentation:** [Wiki](https://github.com/YOUR-USERNAME/visualised/wiki)
-- **Issues:** [GitHub Issues](https://github.com/YOUR-USERNAME/visualised/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/YOUR-USERNAME/visualised/discussions)
+- **Documentation:** [Wiki](https://github.com/wallisoft/visualised/wiki)
+- **Issues:** [GitHub Issues](https://github.com/wallisoft/visualised/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/wallisoft/visualised/discussions)
 - **Email:** wallisoft@gmail.com
 
 ### Commercial Support
@@ -419,7 +412,7 @@ A: Your data never leaves your machine. SQLite is local. No telemetry ever.
 ## Contact
 
 **Email:** wallisoft@gmail.com  
-**GitHub:** github.com/YOUR-USERNAME/visualised  
+**GitHub:** github.com/wallisoft/visualised  
 **Commercial Licensing:** wallisoft@gmail.com
 
 ---
