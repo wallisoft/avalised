@@ -94,7 +94,7 @@ private void ImportDesignerYamlToDatabase()
     Console.WriteLine("✅ Designer YAML imported to SQLite!");
 }
 
-        private void LoadDesignerUI()
+private void LoadDesignerUI()
         {
             try
             {
@@ -133,18 +133,19 @@ private void ImportDesignerYamlToDatabase()
                         
                         mainWindow.Close();
                         
-                        // Remove old properties panel from YAML
                         var oldPropsPanel = DesignerHelpers.FindControlByName<Panel>(mainCanvas, "PropertiesPanel");
                         if (oldPropsPanel != null)
                         {
                             mainCanvas.Children.Remove(oldPropsPanel);
                         }
 
-                        // Add new code-based properties panel
                         var newPropsPanel = CreatePropertiesPanel();
                         mainCanvas.Children.Add(newPropsPanel);
 
-                        InitializeUIReferences(mainCanvas);
+                        _toolboxPanel = DesignerHelpers.FindControlByName<Panel>(mainCanvas, "ToolboxPanel");
+                        _editorPanel = DesignerHelpers.FindControlByName<Panel>(mainCanvas, "EditorPanel");
+                        _yamlEditor = DesignerHelpers.FindControlByName<TextBox>(mainCanvas, "YamlEditor");
+
                         HookupToolboxButtons(mainCanvas);
                         HookupMenuItems(mainCanvas);
                         SetupPropertyEditors();
@@ -251,23 +252,99 @@ private void ImportDesignerYamlToDatabase()
             }
         }
 
-        private void SetupPropertyEditors()
+	private void SetupPropertyEditors()
         {
             if (_propName != null)
+            {
                 _propName.LostFocus += (s, e) => UpdateControlFromProperty("name", _propName.Text);
+                _propName.KeyDown += (s, e) => 
+                { 
+                    if (e.Key == Key.Enter) 
+                    {
+                        UpdateControlFromProperty("name", _propName.Text);
+                        e.Handled = true;
+                    }
+                };
+            }
+            
             if (_propX != null)
+            {
                 _propX.LostFocus += (s, e) => UpdateControlFromProperty("x", _propX.Text);
+                _propX.KeyDown += (s, e) => 
+                { 
+                    if (e.Key == Key.Enter) 
+                    {
+                        UpdateControlFromProperty("x", _propX.Text);
+                        e.Handled = true;
+                    }
+                };
+            }
+            
             if (_propY != null)
+            {
                 _propY.LostFocus += (s, e) => UpdateControlFromProperty("y", _propY.Text);
+                _propY.KeyDown += (s, e) => 
+                { 
+                    if (e.Key == Key.Enter) 
+                    {
+                        UpdateControlFromProperty("y", _propY.Text);
+                        e.Handled = true;
+                    }
+                };
+            }
+            
             if (_propWidth != null)
+            {
                 _propWidth.LostFocus += (s, e) => UpdateControlFromProperty("width", _propWidth.Text);
+                _propWidth.KeyDown += (s, e) => 
+                { 
+                    if (e.Key == Key.Enter) 
+                    {
+                        UpdateControlFromProperty("width", _propWidth.Text);
+                        e.Handled = true;
+                    }
+                };
+            }
+            
             if (_propHeight != null)
+            {
                 _propHeight.LostFocus += (s, e) => UpdateControlFromProperty("height", _propHeight.Text);
+                _propHeight.KeyDown += (s, e) => 
+                { 
+                    if (e.Key == Key.Enter) 
+                    {
+                        UpdateControlFromProperty("height", _propHeight.Text);
+                        e.Handled = true;
+                    }
+                };
+            }
+            
             if (_propCaption != null)
+            {
                 _propCaption.LostFocus += (s, e) => UpdateControlFromProperty("caption", _propCaption.Text);
+                _propCaption.KeyDown += (s, e) => 
+                { 
+                    if (e.Key == Key.Enter) 
+                    {
+                        UpdateControlFromProperty("caption", _propCaption.Text);
+                        e.Handled = true;
+                    }
+                };
+            }
+            
             if (_propText != null)
+            {
                 _propText.LostFocus += (s, e) => UpdateControlFromProperty("text", _propText.Text);
-        }
+                _propText.KeyDown += (s, e) => 
+                { 
+                    if (e.Key == Key.Enter) 
+                    {
+                        UpdateControlFromProperty("text", _propText.Text);
+                        e.Handled = true;
+                    }
+                };
+            }
+        }	
 
         private void UpdateControlFromProperty(string property, string? value)
         {
