@@ -1,0 +1,45 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Avalised.App">
+    <Application.Styles>
+        <FluentTheme />
+        
+        <!-- Modern design system -->
+        <Style Selector="Window">
+            <Setter Property="Background" Value="#FAFAFA"/>
+        </Style>
+        
+        <!-- Clean modern menu -->
+        <Style Selector="Menu">
+            <Setter Property="Background" Value="#2E7D32"/>
+            <Setter Property="Height" Value="48"/>
+        </Style>
+        
+        <Style Selector="MenuItem">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="16,0"/>
+        </Style>
+        
+        <Style Selector="MenuItem:pointerover /template/ Border">
+            <Setter Property="Background" Value="#388E3C"/>
+        </Style>
+        
+        <Style Selector="MenuItem:selected /template/ Border">
+            <Setter Property="Background" Value="#43A047"/>
+        </Style>
+        
+        <!-- Modern panels -->
+        <Style Selector="Border.panel">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BoxShadow" Value="0 2 8 0 #10000000"/>
+        </Style>
+        
+        <!-- Elevated panels -->
+        <Style Selector="Border.elevated">
+            <Setter Property="BoxShadow" Value="0 4 12 0 #20000000"/>
+        </Style>
+    </Application.Styles>
+</Application>

@@ -1,0 +1,13 @@
+Find this line (around 304):
+        _selectionBorder.PointerPressed += (s, e) =>
+        {
+
+Add right after the opening brace:
+            Console.WriteLine($"BORDER PRESSED! _isResizing={_isResizing}");
+
+And find this line (around 314):
+        _selectionBorder.PointerMoved += (s, e) =>
+        {
+
+Add after:
+            Console.WriteLine($"BORDER MOVED! _isDragging={_isDragging}");

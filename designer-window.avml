@@ -1,0 +1,124 @@
+# Avalised Designer - Working Version
+DesignerWindow:
+  Type: Window
+  Title: Avalised Designer v1.0
+  Width: 1400
+  Height: 900
+  Content:
+    MainStack:
+      Type: StackPanel
+      Orientation: Vertical
+      Children:
+        - TopBar:
+            Type: Border
+            Height: 32
+            Background: "#2D2D30"
+            Content:
+              StatusStack:
+                Type: StackPanel
+                Orientation: Horizontal
+                Margin: 8,6,8,6
+                Spacing: 20
+                Children:
+                  - StatusReady:
+                      Type: TextBlock
+                      Text: Ready
+                      Foreground: "#FFFFFF"
+                      FontSize: 11
+                  - CanvasInfo:
+                      Type: TextBlock
+                      Text: Canvas 800x600
+                      Foreground: "#AAAAAA"
+                      FontSize: 11
+        - WorkArea:
+            Type: StackPanel
+            Orientation: Horizontal
+            Children:
+              - ToolboxBorder:
+                  Type: Border
+                  Width: 220
+                  Height: 868
+                  Background: "#F5F5F5"
+                  Content:
+                    ToolboxStack:
+                      Type: StackPanel
+                      Orientation: Vertical
+                      Margin: 12
+                      Spacing: 4
+                      Children:
+                        - ToolboxTitle:
+                            Type: TextBlock
+                            Text: TOOLBOX
+                            FontSize: 13
+                            FontWeight: Bold
+                            Margin: 0,0,0,12
+                        - BasicLabel:
+                            Type: TextBlock
+                            Text: Basic Controls
+                            FontSize: 10
+                            Foreground: "#666666"
+                            Margin: 0,8,0,4
+                        - BtnAddButton:
+                            Type: Button
+                            Content: Button
+                            Height: 30
+                        - BtnAddTextBox:
+                            Type: Button
+                            Content: TextBox
+                            Height: 30
+                        - BtnAddLabel:
+                            Type: Button
+                            Content: Label
+                            Height: 30
+                        - BtnAddCheckBox:
+                            Type: Button
+                            Content: CheckBox
+                            Height: 30
+                        - LayoutLabel:
+                            Type: TextBlock
+                            Text: Layout Containers
+                            FontSize: 10
+                            Foreground: "#666666"
+                            Margin: 0,12,0,4
+                        - BtnAddStackPanel:
+                            Type: Button
+                            Content: StackPanel
+                            Height: 30
+                        - BtnAddCanvas:
+                            Type: Button
+                            Content: Canvas
+                            Height: 30
+              - CanvasBorder:
+                  Type: Border
+                  Width: 900
+                  Height: 868
+                  Background: "#FFFFFF"
+                  Content:
+                    DesignCanvas:
+                      Type: Canvas
+                      Width: 800
+                      Height: 600
+                      Background: "#FAFAFA"
+              - PropertiesBorder:
+                  Type: Border
+                  Width: 280
+                  Height: 868
+                  Background: "#F5F5F5"
+                  Content:
+                    PropertiesStack:
+                      Type: StackPanel
+                      Orientation: Vertical
+                      Margin: 12
+                      Spacing: 8
+                      Children:
+                        - PropertiesTitle:
+                            Type: TextBlock
+                            Text: PROPERTIES
+                            FontSize: 13
+                            FontWeight: Bold
+                            Margin: 0,0,0,12
+                        - NoSelection:
+                            Type: TextBlock
+                            Text: No control selected
+                            FontSize: 11
+                            Foreground: "#999999"
