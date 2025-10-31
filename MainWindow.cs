@@ -78,7 +78,15 @@ public class MainWindow : Window
                 };
                 Console.WriteLine($"   ✓ {menuItem.Name}: {action.ActionName}");
             }
-            // Future: Handle other control types (Button, etc.)
+            else if (action.Control is Button button)
+            {
+                // Wire Button to ActionExecutor (toolbox buttons!)
+                button.Click += async (s, e) =>
+                {
+                    await _actionExecutor.ExecuteAsync(action.ActionName, action.Parameters);
+                };
+                Console.WriteLine($"   ✓ {button.Name}: {action.ActionName}");
+            }
         }
         
         Console.WriteLine("✅ All actions wired!");
@@ -95,6 +103,7 @@ public class MainWindow : Window
         WireMenuItem(menuItems, "ViewOptions", OnViewOptions);
         WireMenuItem(menuItems, "ToolsOptions", OnViewOptions);
         WireMenuItem(menuItems, "ToolsMarkupEditor", OnMarkupEditor);
+        WireMenuItem(menuItems, "TestCreateControl", OnTestCreateControl);
         WireMenuItem(menuItems, "ToolsImportVB5", OnImportVB5);
         WireMenuItem(menuItems, "ToolsDebugUser1", OnDebugUser1);
         WireMenuItem(menuItems, "ToolsDebugUser2", OnDebugUser2);
@@ -273,7 +282,16 @@ public class MainWindow : Window
             Console.WriteLine("✅ Visual tree dumped to ~/avalised-tree.txt");
         }
     }
+
+    private void OnTestCreateControl(object? sender, RoutedEventArgs e)
+    {
+        Console.WriteLine("🧪 TEST: Menu clicked, calling TestCreateControl...");
+        _designerLayout?.TestCreateControl();
+    }
+
 }
+
+
 
 
 

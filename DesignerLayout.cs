@@ -14,9 +14,20 @@ public class DesignerLayout : ContentControl
     private readonly string _dbPath;
     private UITreeBuilder? _builder;
     
-    // Drag & Drop state
+    // Drag & Drop state (toolbox)
     private string? _dragControlType;
     private bool _isDragging;
+    
+    // Control movement drag state
+    private bool _isDraggingControl;
+    private Control? _draggedControl;
+    private Avalonia.Point _dragStartPoint;
+    private double _dragStartLeft;
+    private double _dragStartTop;
+    
+    // Preview mode state
+    private bool _isPreviewMode = false;
+    
     private Canvas? _designCanvas;
     private Control? _selectedControl;
     private Border? _selectionBorder;
@@ -32,7 +43,7 @@ public class DesignerLayout : ContentControl
         Dispatcher.UIThread.Post(() =>
         {
             WireCanvasEvents();
-            WireToolboxButtons();
+            // WireToolboxButtons(); // No longer needed - toolbox is soft-coded!
         }, DispatcherPriority.Loaded);
     }
     
@@ -131,7 +142,8 @@ public class DesignerLayout : ContentControl
             var button = FindControl<Button>(this, buttonName);
             if (button != null)
             {
-                button.PointerPressed += (s, e) => OnToolboxButtonPressed(controlType, e);
+                var capturedType = controlType; // Fix closure bug!
+                button.PointerPressed += (s, e) => OnToolboxButtonPressed(capturedType, e);
                 wiredCount++;
             }
         }
@@ -154,7 +166,31 @@ public class DesignerLayout : ContentControl
         var pos = e.GetPosition(_designCanvas);
         UpdateMousePosition((int)pos.X, (int)pos.Y);
         
-        // Visual feedback during drag
+        // Handle control dragging (moving existing controls)
+        if (_isDraggingControl && _draggedControl != null)
+        {
+            var deltaX = pos.X - _dragStartPoint.X;
+            var deltaY = pos.Y - _dragStartPoint.Y;
+            
+            var newLeft = _dragStartLeft + deltaX;
+            var newTop = _dragStartTop + deltaY;
+            
+            // Update control position
+            Canvas.SetLeft(_draggedControl, newLeft);
+            Canvas.SetTop(_draggedControl, newTop);
+            
+            // Update selection border to follow
+            if (_selectionBorder != null)
+            {
+                Canvas.SetLeft(_selectionBorder, newLeft);
+                Canvas.SetTop(_selectionBorder, newTop);
+            }
+            
+            UpdateStatus($"Moving: {_draggedControl.Name} to ({(int)newLeft}, {(int)newTop})", false);
+            return;
+        }
+        
+        // Visual feedback during toolbox drag
         if (_isDragging && _dragControlType != null)
         {
             _designCanvas.Cursor = new Cursor(StandardCursorType.Cross);
@@ -163,45 +199,87 @@ public class DesignerLayout : ContentControl
     
     private void OnCanvasPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        // Handle control drag end
+        if (_isDraggingControl && _draggedControl != null)
+        {
+            var finalPos = e.GetPosition(_designCanvas!);
+            Console.WriteLine($"✅ Moved {_draggedControl.Name} to ({(int)Canvas.GetLeft(_draggedControl)}, {(int)Canvas.GetTop(_draggedControl)})");
+            UpdateStatus($"Moved {_draggedControl.Name}", false);
+            
+            _isDraggingControl = false;
+            _draggedControl = null;
+            return;
+        }
+        
+        // Handle toolbox drag (creating new control)
         if (!_isDragging || _dragControlType == null || _designCanvas == null)
             return;
         
         var pos = e.GetPosition(_designCanvas);
         
-        // Create the new control
-        Control? newControl = _dragControlType switch
-        {
-            "Button" => new Button { Content = "Button", Width = 100, Height = 32 },
-            "TextBox" => new TextBox { Text = "TextBox", Width = 150, Height = 28 },
-            "TextBlock" => new TextBlock { Text = "Label", FontSize = 14 },
-            "CheckBox" => new CheckBox { Content = "CheckBox" },
-            "Panel" => new Panel { Width = 200, Height = 150, Background = Brushes.LightGray },
-            "StackPanel" => new StackPanel { Width = 200, Height = 150, Background = Brushes.LightBlue },
-            "Canvas" => new Canvas { Width = 200, Height = 150, Background = Brushes.LightGreen },
-            _ => null
-        };
+        // Create dummy control properties
+        var properties = new Dictionary<string, string>();
         
-        if (newControl != null)
+        switch (_dragControlType)
         {
-            // Position it
-            Canvas.SetLeft(newControl, pos.X);
-            Canvas.SetTop(newControl, pos.Y);
-            
-            // Give it a unique name
-            newControl.Name = $"{_dragControlType}_{DateTime.Now.Ticks % 10000}";
-            
-            // Add to canvas
-            _designCanvas.Children.Add(newControl);
-            
-            // Make it selectable
-            newControl.PointerPressed += OnControlPointerPressed;
-            
-            UpdateStatus($"Added {_dragControlType} at ({(int)pos.X}, {(int)pos.Y})", false);
-            Console.WriteLine($"✅ Created {newControl.Name} at {(int)pos.X},{(int)pos.Y}");
-            
-            // Auto-select the new control
-            SelectControl(newControl);
+            case "Button":
+                properties["content"] = "Button";
+                properties["width"] = "100";
+                properties["height"] = "32";
+                break;
+            case "TextBox":
+                properties["text"] = "TextBox";
+                properties["width"] = "150";
+                properties["height"] = "28";
+                break;
+            case "TextBlock":
+                properties["text"] = "Label";
+                properties["width"] = "80";
+                properties["height"] = "24";
+                break;
+            case "CheckBox":
+                properties["content"] = "CheckBox";
+                properties["width"] = "100";
+                properties["height"] = "24";
+                break;
+            case "Panel":
+                properties["width"] = "200";
+                properties["height"] = "150";
+                properties["background"] = "#EEEEEE";
+                break;
+            case "StackPanel":
+                properties["width"] = "200";
+                properties["height"] = "150";
+                properties["background"] = "#E3F2FD";
+                break;
+            case "Canvas":
+                properties["width"] = "200";
+                properties["height"] = "150";
+                properties["background"] = "#E8F5E9";
+                break;
         }
+        
+        // Create dummy control
+        var newControl = CreateDummyControl(_dragControlType, properties);
+        
+        // Position it
+        Canvas.SetLeft(newControl, pos.X);
+        Canvas.SetTop(newControl, pos.Y);
+        
+        // Give it a unique name
+        newControl.Name = $"{_dragControlType}_{DateTime.Now.Ticks % 10000}";
+        
+        // Add to canvas
+        _designCanvas.Children.Add(newControl);
+        
+        // Make it selectable - dummy controls don't consume events
+        newControl.PointerPressed += OnControlPointerPressed;
+        
+        UpdateStatus($"Added {_dragControlType} at ({(int)pos.X}, {(int)pos.Y})", false);
+        Console.WriteLine($"✅ Dummy control: Created {newControl.Name} at {(int)pos.X},{(int)pos.Y}");
+        
+        // Auto-select the new control
+        SelectControl(newControl);
         
         // Reset drag state
         _isDragging = false;
@@ -221,9 +299,17 @@ public class DesignerLayout : ContentControl
     
     private void OnControlPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Control control)
+        if (sender is Control control && _designCanvas != null)
         {
             SelectControl(control);
+            
+            // Start dragging this control
+            _isDraggingControl = true;
+            _draggedControl = control;
+            _dragStartPoint = e.GetPosition(_designCanvas);
+            _dragStartLeft = Canvas.GetLeft(control);
+            _dragStartTop = Canvas.GetTop(control);
+            
             e.Handled = true; // Don't propagate to canvas
         }
     }
@@ -373,6 +459,115 @@ public class DesignerLayout : ContentControl
         parent.Children.Add(propertyStack);
     }
     
+    // Create dummy control for design mode (not functional, just visual)
+    private Control CreateDummyControl(string controlType, Dictionary<string,string> properties)
+    {
+        // Get dimensions from properties
+        var width = properties.TryGetValue("width", out var w) ? double.Parse(w) : 100;
+        var height = properties.TryGetValue("height", out var h) ? double.Parse(h) : 32;
+        
+        // Get content/text for label
+        string displayText = controlType;
+        if (properties.TryGetValue("content", out var content))
+            displayText = content;
+        else if (properties.TryGetValue("text", out var text))
+            displayText = text;
+        
+        // Get background color if specified
+        IBrush background = Brushes.White;
+        if (properties.TryGetValue("background", out var bgColor))
+            background = Brush.Parse(bgColor);
+        
+        // Create dummy representation - a Border with label
+        var dummy = new Border
+        {
+            Width = width,
+            Height = height,
+            Background = background,
+            BorderBrush = Brushes.Gray,
+            BorderThickness = new Avalonia.Thickness(1),
+            Child = new TextBlock
+            {
+                Text = displayText,
+                FontSize = 10,
+                Foreground = Brushes.DarkGray,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+            }
+        };
+        
+        // Store control type in Tag for later reference
+        dummy.Tag = controlType;
+        
+        return dummy;
+    }
+    
+    
+    // PUBLIC API - Called by ActionExecutor for soft-coded control creation
+    public void AddControlToCanvas(string controlType, double x, double y, Dictionary<string,string> properties)
+    {
+        if (_designCanvas == null)
+        {
+            Console.WriteLine("❌ Canvas not available");
+            return;
+        }
+        
+        // Create dummy control for design mode
+        Control newControl = CreateDummyControl(controlType, properties);
+        
+        // Position it
+        Canvas.SetLeft(newControl, x);
+        Canvas.SetTop(newControl, y);
+        
+        // Name it
+        newControl.Name = $"{controlType}_{DateTime.Now.Ticks % 10000}";
+        
+        // Add to canvas
+        _designCanvas.Children.Add(newControl);
+        
+        // Make it selectable - dummy controls don't consume events
+        newControl.PointerPressed += OnControlPointerPressed;
+        
+        UpdateStatus($"Added {controlType} at ({(int)x}, {(int)y})", false);
+        Console.WriteLine($"✅ Dummy control: Created {newControl.Name} at {(int)x},{(int)y}");
+        
+        // Auto-select
+        SelectControl(newControl);
+    }
+    
+    // TEST METHOD - Direct control creation
+    public void TestCreateControl()
+    {
+        if (_designCanvas == null)
+        {
+            Console.WriteLine("❌ Canvas not found for test");
+            return;
+        }
+        
+        // Create test button directly
+        var testButton = new Button 
+        { 
+            Content = "TEST BUTTON", 
+            Width = 120, 
+            Height = 40 
+        };
+        
+        Canvas.SetLeft(testButton, 100);
+        Canvas.SetTop(testButton, 100);
+        testButton.Name = "TestButton_" + DateTime.Now.Ticks;
+        
+        _designCanvas.Children.Add(testButton);
+        
+        // Use AddHandler for button to receive handled events
+        testButton.AddHandler(PointerPressedEvent, OnControlPointerPressed, handledEventsToo: true);
+        
+        Console.WriteLine($"✅ TEST: Created {testButton.Name} at 100,100");
+        Console.WriteLine($"✅ TEST: Canvas now has {_designCanvas.Children.Count} children");
+        
+        UpdateStatus($"TEST: Added {testButton.Name}", false);
+        SelectControl(testButton);
+    }
+    
     private T? FindControl<T>(Control? parent, string name) where T : Control
     {
         if (parent == null) return null;
@@ -422,3 +617,9 @@ public class DesignerLayout : ContentControl
     {
     }
 }
+
+
+
+
+
+

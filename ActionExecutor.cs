@@ -72,6 +72,9 @@ namespace Avalised
                     "app.help" => await ExecuteAppHelp(parameters),
                     "app.options" => await ExecuteAppOptions(parameters),
 
+                    // Canvas actions
+                    "canvas.addcontrol" => await ExecuteCanvasAddControl(parameters),
+
                     _ => throw new NotImplementedException($"Action '{actionName}' not implemented yet")
                 };
             }
@@ -293,6 +296,19 @@ namespace Avalised
         {
             await DialogService.ShowInfo("Options", "Options dialog coming soon!");
             return null;
+        }
+
+        // ========== CANVAS ACTIONS ==========
+        
+        private async Task<object?> ExecuteCanvasAddControl(Dictionary<string, string> parameters)
+        {
+            var type = parameters.GetValueOrDefault("type", "Button");
+            var x = double.Parse(parameters.GetValueOrDefault("x", "100"));
+            var y = double.Parse(parameters.GetValueOrDefault("y", "100"));
+            
+            _designerLayout?.AddControlToCanvas(type, x, y, parameters);
+            
+            return await Task.FromResult<object?>(null);
         }
     }
 }
