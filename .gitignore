@@ -1,134 +1,61 @@
-# ═══════════════════════════════════════════════════════════════════
-# Avalised .gitignore
-# .NET / Avalonia / C# Project
-# ═══════════════════════════════════════════════════════════════════
+# .NET Build outputs
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
 
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-[Ww][Ii][Nn]32/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-bld/
-[Bb]in/
-[Oo]bj/
-[Ll]og/
-[Ll]ogs/
-
-# Visual Studio cache/options
+# Visual Studio / Rider
 .vs/
 .vscode/
+.idea/
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
 
 # Build results
-*_i.c
-*_p.c
-*_h.h
-*.ilk
-*.meta
-*.obj
-*.iobj
-*.pch
-*.pdb
-*.ipdb
-*.pgc
-*.pgd
-*.rsp
-*.sbr
-*.tlb
-*.tli
-*.tlh
-*.tmp
-*.tmp_proj
-*_wpftmp.csproj
-*.log
-*.tlog
-*.vspscc
-*.vssscc
-.builds
-*.pidb
-*.svclog
-*.scc
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
 
 # NuGet
 *.nupkg
 *.snupkg
-**/packages/*
-!**/packages/build/
-*.nuget.props
-*.nuget.targets
-project.lock.json
-project.fragment.lock.json
-artifacts/
+packages/
+.nuget/
 
-# .NET Core
-project.lock.json
-project.fragment.lock.json
-artifacts/
+# Test results
+TestResults/
+*.trx
+*.coverage
 
-# Rider (JetBrains)
-.idea/
-*.sln.iml
-
-# User-specific files
-*.rsuser
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# Mono auto generated files
-mono_crash.*
-
-# Windows image file caches
-Thumbs.db
-ehthumbs.db
-
-# Folder config file
-Desktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Mac
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Linux
-*~
-.directory
-.Trash-*
-
-# SQLite databases (optional - you may want to track designer.db)
+# Runtime database (user-specific)
 *.db
 *.db-shm
 *.db-wal
 
-# Avalised-specific
-designer.db
-*.avml.bak
-*.yaml.bak
+# Logs
+*.log
+nohup.out
+
+# Backups
+*.bak
+*.bak2
+*.bak3
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
 
 # Temporary files
-*.swp
-*.swo
-*~
-.*.sw?
-
-# Compiled Python (if using helper scripts)
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Environment variables
-.env
-.env.local
-.env.*.local
+/tmp/
+avalised-tree.txt

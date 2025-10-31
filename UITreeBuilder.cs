@@ -12,6 +12,9 @@ public class UITreeBuilder
 {
     private readonly string _dbPath;
     private readonly Dictionary<int, Control> _controlCache = new();
+    private readonly List<ControlAction> _actions = new();
+
+    public List<ControlAction> Actions => _actions;
 
     public UITreeBuilder(string dbPath)
     {
@@ -63,7 +66,11 @@ public class UITreeBuilder
         {
             BuildMenuItems(connection, id, menuItem);
         }
-        else if (control is ContentControl contentControl && controlType != "Button")
+        else if (control is Border border)
+        {
+            BuildBorderContent(connection, id, border);
+        }
+                else if (control is ContentControl contentControl && controlType != "Button")
         {
             BuildChildren(connection, id, contentControl);
         }
@@ -106,6 +113,7 @@ public class UITreeBuilder
             "Menu" => new Menu(),
             "MenuItem" => new MenuItem(),
             "Separator" => new Separator(),
+            "Window" => new Window(),
             _ => null
         };
     }
@@ -116,11 +124,61 @@ public class UITreeBuilder
         cmd.CommandText = "SELECT property_name, property_value FROM ui_properties WHERE ui_tree_id = @id";
         cmd.Parameters.AddWithValue("@id", id);
 
+        string? actionName = null;
+        string? actionParams = null;
+
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
-            SetProperty(control, reader.GetString(0), reader.GetString(1));
+            var propName = reader.GetString(0);
+            var propValue = reader.GetString(1);
+
+            // Capture Action properties for later wiring
+            if (propName == "Action")
+            {
+                actionName = propValue;
+            }
+            else if (propName == "ActionParams")
+            {
+                actionParams = propValue;
+            }
+            else
+            {
+                SetProperty(control, propName, propValue);
+            }
         }
+
+        // Store action for wiring
+        if (!string.IsNullOrEmpty(actionName))
+        {
+            var parameters = ParseActionParams(actionParams);
+            _actions.Add(new ControlAction
+            {
+                Control = control,
+                ActionName = actionName,
+                Parameters = parameters
+            });
+        }
+    }
+
+    private Dictionary<string, string> ParseActionParams(string? actionParams)
+    {
+        var parameters = new Dictionary<string, string>();
+        if (string.IsNullOrEmpty(actionParams))
+            return parameters;
+
+        // Parse semicolon-separated key=value pairs
+        var pairs = actionParams.Split(';');
+        foreach (var pair in pairs)
+        {
+            var parts = pair.Split(new[] { '=' }, 2);
+            if (parts.Length == 2)
+            {
+                parameters[parts[0].Trim()] = parts[1].Trim();
+            }
+        }
+
+        return parameters;
     }
 
     private void SetProperty(Control control, string name, string value)
@@ -289,13 +347,24 @@ public class UITreeBuilder
 
     private void BuildChildren(SqliteConnection connection, int parentId, ContentControl contentControl)
     {
+        Console.WriteLine($"Building children for ContentControl parent_id={parentId}, name={contentControl.Name}");
         var cmd = connection.CreateCommand();
         cmd.CommandText = "SELECT id FROM ui_tree WHERE parent_id = @pid ORDER BY display_order LIMIT 1";
         cmd.Parameters.AddWithValue("@pid", parentId);
 
         var result = cmd.ExecuteScalar();
+        Console.WriteLine($"  Found child id: {result}");
         if (result != null)
-            contentControl.Content = BuildControl(connection, Convert.ToInt32(result));
+        {
+            var child = BuildControl(connection, Convert.ToInt32(result));
+            Console.WriteLine($"  Created child: {child.GetType().Name} [{child.Name}]");
+            contentControl.Content = child;
+            Console.WriteLine($"  Set content on {contentControl.Name}");
+        }
+        else
+        {
+            Console.WriteLine($"  No children found for {contentControl.Name}");
+        }
     }
 
     private void BuildScrollViewerContent(SqliteConnection connection, int parentId, ScrollViewer scrollViewer)
@@ -308,4 +377,28 @@ public class UITreeBuilder
         if (result != null)
             scrollViewer.Content = BuildControl(connection, Convert.ToInt32(result));
     }
+
+    private void BuildBorderContent(SqliteConnection connection, int parentId, Border border)
+    {
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = "SELECT id FROM ui_tree WHERE parent_id = @pid ORDER BY display_order LIMIT 1";
+        cmd.Parameters.AddWithValue("@pid", parentId);
+
+        var result = cmd.ExecuteScalar();
+        if (result != null)
+        {
+            border.Child = BuildControl(connection, Convert.ToInt32(result));
+        }
+    }
+}
+
+
+/// <summary>
+/// Stores action data for a control
+/// </summary>
+public class ControlAction
+{
+    public Control Control { get; set; }
+    public string ActionName { get; set; }
+    public Dictionary<string, string> Parameters { get; set; }
 }

@@ -10,6 +10,7 @@ namespace Avalised;
 public class MainWindow : Window
 {
     private DesignerLayout? _designerLayout;
+    private ActionExecutor? _actionExecutor;
     
     public MainWindow()
     {
@@ -18,9 +19,14 @@ public class MainWindow : Window
         Height = 720;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         
+        
+        
         LoadUI();
         
-        this.Opened += (s, e) => WireUpEventHandlers();
+        this.Opened += (s, e) => {
+            WireUpEventHandlers();
+            DumpVisualTree(this);
+        };
         this.PropertyChanged += OnWindowPropertyChanged;
     }
 
@@ -32,24 +38,15 @@ public class MainWindow : Window
             "designer.db"
         );
 
-        // Build menu
-        var builder = new UITreeBuilder(dbPath);
-        var menu = builder.BuildUI();
-        
-        // Create designer layout
+        // Create designer layout - it loads everything from database
         _designerLayout = new DesignerLayout(dbPath);
         
-        // PROPER HIERARCHY: Root DockPanel contains everything
-        var rootPanel = new DockPanel { LastChildFill = true };
+        // Create action executor
+        _actionExecutor = new ActionExecutor(dbPath, this);
+        _actionExecutor.SetDesignerLayout(_designerLayout);
         
-        // Menu at top (properly docked)
-        DockPanel.SetDock(menu, Dock.Top);
-        rootPanel.Children.Add(menu);
-        
-        // Designer layout fills remaining space (includes status bar)
-        rootPanel.Children.Add(_designerLayout);
-        
-        Content = rootPanel;
+        // That's it! DesignerWindow includes menu, canvas, status bar
+        Content = _designerLayout;
     }
 
     private void OnWindowPropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)
@@ -62,16 +59,41 @@ public class MainWindow : Window
 
     private void WireUpEventHandlers()
     {
+        if (_designerLayout?.Actions == null || _actionExecutor == null)
+        {
+            Console.WriteLine("⚠️  No actions to wire up");
+            return;
+        }
+
+        Console.WriteLine($"🔗 Wiring up {_designerLayout.Actions.Count} soft-coded actions...");
+
+        foreach (var action in _designerLayout.Actions)
+        {
+            if (action.Control is MenuItem menuItem)
+            {
+                // Wire MenuItem to ActionExecutor
+                menuItem.Click += async (s, e) =>
+                {
+                    await _actionExecutor.ExecuteAsync(action.ActionName, action.Parameters);
+                };
+                Console.WriteLine($"   ✓ {menuItem.Name}: {action.ActionName}");
+            }
+            // Future: Handle other control types (Button, etc.)
+        }
+        
+        Console.WriteLine("✅ All actions wired!");
+
+        // Keep legacy handlers for items not yet converted to Action system
         var menuItems = new Dictionary<string, MenuItem>();
         FindMenuItems(this, menuItems);
         
-        WireMenuItem(menuItems, "HelpAbout", OnHelpAbout);
+        // These still need hardcoded handlers (not yet in AVML as Actions)
         WireMenuItem(menuItems, "HelpSystemInfo", OnHelpSystemInfo);
         WireMenuItem(menuItems, "HelpWiki", OnHelpWiki);
-        WireMenuItem(menuItems, "FileExit", OnFileExit);
         WireMenuItem(menuItems, "PreviewToggle", OnPreviewToggle);
         WireMenuItem(menuItems, "PreviewRun", OnPreviewRun);
         WireMenuItem(menuItems, "ViewOptions", OnViewOptions);
+        WireMenuItem(menuItems, "ToolsOptions", OnViewOptions);
         WireMenuItem(menuItems, "ToolsMarkupEditor", OnMarkupEditor);
         WireMenuItem(menuItems, "ToolsImportVB5", OnImportVB5);
         WireMenuItem(menuItems, "ToolsDebugUser1", OnDebugUser1);
@@ -108,6 +130,12 @@ public class MainWindow : Window
 
     #region Event Handlers
 
+    private async void OnHelpGettingStarted(object? sender, RoutedEventArgs e)
+    {
+        var dialog = new Dialogs.AboutDialog();
+        await dialog.ShowDialog(this);
+    }
+
     private async void OnHelpAbout(object? sender, RoutedEventArgs e)
     {
         var dialog = new Dialogs.AboutDialog();
@@ -131,6 +159,27 @@ public class MainWindow : Window
             });
         }
         catch { }
+    }
+
+    private void OnFileReload(object? sender, RoutedEventArgs e)
+    {
+        // Reload the designer from database
+        if (_designerLayout != null)
+        {
+            var dbPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Avalised",
+                "designer.db"
+            );
+            
+            // Recreate designer layout
+            _designerLayout = new DesignerLayout(dbPath);
+            Content = _designerLayout;
+            
+            // Rewire event handlers
+            WireUpEventHandlers();
+            DumpVisualTree(this);
+        }
     }
 
     private void OnFileExit(object? sender, RoutedEventArgs e)
@@ -183,6 +232,9 @@ public class MainWindow : Window
         _designerLayout?.UpdateStatus("Running User Defined 3...", false);
     }
 
+    // File and Test menu handlers are now soft-coded via ActionExecutor!
+    // See Action properties in designer-window.avml
+
     #endregion
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -194,4 +246,34 @@ public class MainWindow : Window
         else if (e.Key == Key.F9)
             OnPreviewRun(this, new RoutedEventArgs());
     }
+
+    private void DumpVisualTree(Control? control, int indent = 0, System.IO.StreamWriter? writer = null)
+    {
+        if (control == null) return;
+        bool ownWriter = writer == null;
+        if (ownWriter)
+        {
+            writer = new System.IO.StreamWriter(System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "avalised-tree.txt"));
+        }
+        
+        writer.WriteLine($"{new string(' ', indent)}{control.GetType().Name} [{control.Name ?? "(unnamed)"}]" + 
+                        (control.IsVisible ? "" : " [HIDDEN]"));
+        
+        foreach (var child in control.GetVisualChildren())
+        {
+            if (child is Control c)
+                DumpVisualTree(c, indent + 2, writer);
+        }
+        
+        if (ownWriter)
+        {
+            writer.Close();
+            Console.WriteLine("✅ Visual tree dumped to ~/avalised-tree.txt");
+        }
+    }
 }
+
+
+

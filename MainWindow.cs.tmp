@@ -1,0 +1,2 @@
+// Add to event handlers section in MainWindow
+WireMenuItem(menuItems, "PreviewToggle", OnPreviewToggle);
