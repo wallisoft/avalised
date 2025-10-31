@@ -18,19 +18,22 @@ public class DesignerLayout : ContentControl
     private string? _dragControlType;
     private bool _isDragging;
     
-    // Control movement drag state
+    // Control movement drag state - OPTIMIZED with RenderTransform! 🚀
     private bool _isDraggingControl;
     private Control? _draggedControl;
     private Avalonia.Point _dragStartPoint;
     private double _dragStartLeft;
     private double _dragStartTop;
+    private TranslateTransform? _dragTransform; // GPU-accelerated smooth dragging!
+    private ITransform? _originalTransform; // Store original transform to restore
     
     // Preview mode state
     private bool _isPreviewMode = false;
     
     private Canvas? _designCanvas;
     private Control? _selectedControl;
-    private Border? _selectionBorder;
+    // Selection border removed - cursor shows resize zones!
+    private ResizeBehavior? _resizeBehavior;
     
     public List<ControlAction>? Actions => _builder?.Actions;
 
@@ -166,26 +169,25 @@ public class DesignerLayout : ContentControl
         var pos = e.GetPosition(_designCanvas);
         UpdateMousePosition((int)pos.X, (int)pos.Y);
         
-        // Handle control dragging (moving existing controls)
-        if (_isDraggingControl && _draggedControl != null)
+        // Route to resize behavior if active
+        if (_resizeBehavior != null && _selectedControl != null)
+        {
+            _resizeBehavior.HandlePointerMoved(sender, e);
+        }
+        
+        // Handle control dragging (moving existing controls) - OPTIMIZED!
+        if (_isDraggingControl && _draggedControl != null && _dragTransform != null)
         {
             var deltaX = pos.X - _dragStartPoint.X;
             var deltaY = pos.Y - _dragStartPoint.Y;
             
+            // 🚀 GPU-ACCELERATED: Just update the transform, NO layout recalculation!
+            _dragTransform.X = deltaX;
+            _dragTransform.Y = deltaY;
+            
+
             var newLeft = _dragStartLeft + deltaX;
             var newTop = _dragStartTop + deltaY;
-            
-            // Update control position
-            Canvas.SetLeft(_draggedControl, newLeft);
-            Canvas.SetTop(_draggedControl, newTop);
-            
-            // Update selection border to follow
-            if (_selectionBorder != null)
-            {
-                Canvas.SetLeft(_selectionBorder, newLeft);
-                Canvas.SetTop(_selectionBorder, newTop);
-            }
-            
             UpdateStatus($"Moving: {_draggedControl.Name} to ({(int)newLeft}, {(int)newTop})", false);
             return;
         }
@@ -199,15 +201,35 @@ public class DesignerLayout : ContentControl
     
     private void OnCanvasPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        // Handle control drag end
-        if (_isDraggingControl && _draggedControl != null)
+        // Route to resize behavior if active
+        if (_resizeBehavior != null && _selectedControl != null)
         {
-            var finalPos = e.GetPosition(_designCanvas!);
-            Console.WriteLine($"✅ Moved {_draggedControl.Name} to ({(int)Canvas.GetLeft(_draggedControl)}, {(int)Canvas.GetTop(_draggedControl)})");
+            _resizeBehavior.HandlePointerReleased(sender, e);
+        }
+        
+        // Handle control drag end - COMMIT the transform to actual position
+        if (_isDraggingControl && _draggedControl != null && _dragTransform != null)
+        {
+            // Calculate final position
+            var finalLeft = _dragStartLeft + _dragTransform.X;
+            var finalTop = _dragStartTop + _dragTransform.Y;
+            
+            // COMMIT: Apply to Canvas.Left/Top only ONCE at the end
+            Canvas.SetLeft(_draggedControl, finalLeft);
+            Canvas.SetTop(_draggedControl, finalTop);
+            
+            // Restore original transform (or null)
+            _draggedControl.RenderTransform = _originalTransform;
+            
+
+            Console.WriteLine($"✅ Moved {_draggedControl.Name} to ({(int)finalLeft}, {(int)finalTop})");
             UpdateStatus($"Moved {_draggedControl.Name}", false);
             
+            // Clean up
             _isDraggingControl = false;
             _draggedControl = null;
+            _dragTransform = null;
+            _originalTransform = null;
             return;
         }
         
@@ -271,6 +293,7 @@ public class DesignerLayout : ContentControl
         
         // Add to canvas
         _designCanvas.Children.Add(newControl);
+        newControl.SetValue(Canvas.ZIndexProperty, 1); // Normal layer
         
         // Make it selectable - dummy controls don't consume events
         newControl.PointerPressed += OnControlPointerPressed;
@@ -301,18 +324,45 @@ public class DesignerLayout : ContentControl
     {
         if (sender is Control control && _designCanvas != null)
         {
-            SelectControl(control);
+            // If already selected, try ResizeBehavior first
+            if (control == _selectedControl && _resizeBehavior != null)
+            {
+                // Let ResizeBehavior try to handle it
+                if (_resizeBehavior.HandlePointerPressed(sender, e))
+                {
+                    // ResizeBehavior is handling it (resize started)
+                    return;
+                }
+            }
             
-            // Start dragging this control
+            // Select the control (only if not already selected, or if not in resize zone)
+            if (control != _selectedControl)
+            {
+                SelectControl(control);
+            }
+            
+            // If in resize zone, stop here - ResizeBehavior will handle it
+            {
+                return;
+            }
+            
+            // Start dragging this control - OPTIMIZED with RenderTransform! 🚀
             _isDraggingControl = true;
             _draggedControl = control;
             _dragStartPoint = e.GetPosition(_designCanvas);
             _dragStartLeft = Canvas.GetLeft(control);
             _dragStartTop = Canvas.GetTop(control);
             
-            e.Handled = true; // Don't propagate to canvas
+            // Store original transform and create new one for dragging
+            _originalTransform = control.RenderTransform;
+            _dragTransform = new TranslateTransform(0, 0);
+            control.RenderTransform = _dragTransform;
+            
+            e.Handled = true;
         }
     }
+    
+    // Helper: Check if position is in resize zone (8px from edges)
     
     private void SelectControl(Control control)
     {
@@ -321,13 +371,16 @@ public class DesignerLayout : ContentControl
         
         _selectedControl = control;
         
-        // Show selection border
-        ShowSelectionBorder(control);
+        // 🚀 ATTACH RESIZE BEHAVIOR!
+        if (_designCanvas != null)
+        {
+            _resizeBehavior = new ResizeBehavior(control, _designCanvas, minWidth: 20, minHeight: 20);
+        }
         
         // Update properties panel
         UpdatePropertiesPanel(control);
         
-        UpdateStatus($"Selected: {control.Name} ({control.GetType().Name})", false);
+        UpdateStatus($"Selected: {control.Name} ({control.GetType().Name}) - Drag to move, resize from edges", false);
         Console.WriteLine($"🎯 Selected: {control.Name}");
     }
     
@@ -335,43 +388,18 @@ public class DesignerLayout : ContentControl
     {
         if (_selectedControl == null) return;
         
-        // Hide selection border
-        HideSelectionBorder();
-        
+        // Clear resize behavior
+        _resizeBehavior = null;
         _selectedControl = null;
         
         UpdateStatus("Ready", false);
     }
     
-    private void ShowSelectionBorder(Control control)
-    {
-        if (_designCanvas == null) return;
-        
-        // Create selection border
-        _selectionBorder = new Border
-        {
-            BorderBrush = Brushes.Blue,
-            BorderThickness = new Avalonia.Thickness(2),
-            IsHitTestVisible = false // Don't interfere with mouse events
-        };
-        
-        // Position and size to match control
-        Canvas.SetLeft(_selectionBorder, Canvas.GetLeft(control));
-        Canvas.SetTop(_selectionBorder, Canvas.GetTop(control));
-        _selectionBorder.Width = control.Bounds.Width;
-        _selectionBorder.Height = control.Bounds.Height;
-        
-        _designCanvas.Children.Add(_selectionBorder);
-    }
     
-    private void HideSelectionBorder()
-    {
-        if (_selectionBorder != null && _designCanvas != null)
-        {
-            _designCanvas.Children.Remove(_selectionBorder);
-            _selectionBorder = null;
-        }
-    }
+    
+    // Update selection border size AND position during resize
+    
+    // Finalize selection border after resize completes
     
     private void UpdatePropertiesPanel(Control control)
     {
@@ -518,12 +546,14 @@ public class DesignerLayout : ContentControl
         // Position it
         Canvas.SetLeft(newControl, x);
         Canvas.SetTop(newControl, y);
+        newControl.SetValue(Canvas.ZIndexProperty, 1); // Normal layer
         
         // Name it
         newControl.Name = $"{controlType}_{DateTime.Now.Ticks % 10000}";
         
         // Add to canvas
         _designCanvas.Children.Add(newControl);
+        newControl.SetValue(Canvas.ZIndexProperty, 1); // Normal layer
         
         // Make it selectable - dummy controls don't consume events
         newControl.PointerPressed += OnControlPointerPressed;
@@ -617,6 +647,7 @@ public class DesignerLayout : ContentControl
     {
     }
 }
+
 
 
 
