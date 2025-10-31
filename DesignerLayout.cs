@@ -32,7 +32,6 @@ public class DesignerLayout : ContentControl
     
     private Canvas? _designCanvas;
     private Control? _selectedControl;
-    // Selection border removed - cursor shows resize zones!
     private ResizeBehavior? _resizeBehavior;
     
     public List<ControlAction>? Actions => _builder?.Actions;
@@ -46,7 +45,6 @@ public class DesignerLayout : ContentControl
         Dispatcher.UIThread.Post(() =>
         {
             WireCanvasEvents();
-            // WireToolboxButtons(); // No longer needed - toolbox is soft-coded!
         }, DispatcherPriority.Loaded);
     }
     
@@ -119,39 +117,10 @@ public class DesignerLayout : ContentControl
         // Drop zone for new controls
         _designCanvas.PointerReleased += OnCanvasPointerReleased;
         
-        // Selection
+        // Deselection (click on empty canvas)
         _designCanvas.PointerPressed += OnCanvasPointerPressed;
         
-        Console.WriteLine("✅ Canvas events wired");
-    }
-    
-    private void WireToolboxButtons()
-    {
-        // Find all toolbox buttons and wire them for drag
-        var toolboxButtons = new[]
-        {
-            ("AddButton", "Button"),
-            ("AddTextBox", "TextBox"),
-            ("AddLabel", "TextBlock"),
-            ("AddCheckBox", "CheckBox"),
-            ("AddPanel", "Panel"),
-            ("AddStackPanel", "StackPanel"),
-            ("AddCanvas", "Canvas")
-        };
-        
-        int wiredCount = 0;
-        foreach (var (buttonName, controlType) in toolboxButtons)
-        {
-            var button = FindControl<Button>(this, buttonName);
-            if (button != null)
-            {
-                var capturedType = controlType; // Fix closure bug!
-                button.PointerPressed += (s, e) => OnToolboxButtonPressed(capturedType, e);
-                wiredCount++;
-            }
-        }
-        
-        Console.WriteLine($"✅ Wired {wiredCount} toolbox buttons");
+        Console.WriteLine("✅ Canvas events wired (GotFocus/LostFocus pattern)");
     }
     
     private void OnToolboxButtonPressed(string controlType, PointerPressedEventArgs e)
@@ -184,7 +153,6 @@ public class DesignerLayout : ContentControl
             // 🚀 GPU-ACCELERATED: Just update the transform, NO layout recalculation!
             _dragTransform.X = deltaX;
             _dragTransform.Y = deltaY;
-            
 
             var newLeft = _dragStartLeft + deltaX;
             var newTop = _dragStartTop + deltaY;
@@ -220,7 +188,6 @@ public class DesignerLayout : ContentControl
             
             // Restore original transform (or null)
             _draggedControl.RenderTransform = _originalTransform;
-            
 
             Console.WriteLine($"✅ Moved {_draggedControl.Name} to ({(int)finalLeft}, {(int)finalTop})");
             UpdateStatus($"Moved {_draggedControl.Name}", false);
@@ -295,14 +262,14 @@ public class DesignerLayout : ContentControl
         _designCanvas.Children.Add(newControl);
         newControl.SetValue(Canvas.ZIndexProperty, 1); // Normal layer
         
-        // Make it selectable - dummy controls don't consume events
-        newControl.PointerPressed += OnControlPointerPressed;
+        // 🎯 FOCUS PATTERN: Wire focus events and make focusable
+        WireControlEvents(newControl);
         
         UpdateStatus($"Added {_dragControlType} at ({(int)pos.X}, {(int)pos.Y})", false);
         Console.WriteLine($"✅ Dummy control: Created {newControl.Name} at {(int)pos.X},{(int)pos.Y}");
         
-        // Auto-select the new control
-        SelectControl(newControl);
+        // Auto-select the new control by focusing it
+        newControl.Focus();
         
         // Reset drag state
         _isDragging = false;
@@ -313,37 +280,30 @@ public class DesignerLayout : ContentControl
     
     private void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        // Click on empty canvas = deselect
+        // Click on empty canvas = deselect (by removing focus)
         if (e.Source == _designCanvas)
         {
-            DeselectControl();
+            // Clear focus from any control - LostFocus will handle deselection
+            _designCanvas.Focus();
         }
     }
     
+    // 🎯 SIMPLIFIED: Click just starts drag, focus handles selection!
     private void OnControlPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is Control control && _designCanvas != null)
         {
-            // If already selected, try ResizeBehavior first
+            // Focus the control - GotFocus will handle selection
+            control.Focus();
+            
+            // If already selected and in resize zone, ResizeBehavior handles it via routing
             if (control == _selectedControl && _resizeBehavior != null)
             {
-                // Let ResizeBehavior try to handle it
                 if (_resizeBehavior.HandlePointerPressed(sender, e))
                 {
-                    // ResizeBehavior is handling it (resize started)
+                    // ResizeBehavior is handling resize
                     return;
                 }
-            }
-            
-            // Select the control (only if not already selected, or if not in resize zone)
-            if (control != _selectedControl)
-            {
-                SelectControl(control);
-            }
-            
-            // If in resize zone, stop here - ResizeBehavior will handle it
-            {
-                return;
             }
             
             // Start dragging this control - OPTIMIZED with RenderTransform! 🚀
@@ -362,12 +322,33 @@ public class DesignerLayout : ContentControl
         }
     }
     
-    // Helper: Check if position is in resize zone (8px from edges)
+    // 🎯 GOT FOCUS: Automatically attach resize behavior and show selection
+    private void OnControlGotFocus(object? sender, GotFocusEventArgs e)
+    {
+        if (sender is Control control)
+        {
+            SelectControl(control);
+            Console.WriteLine($"🎯 GotFocus: {control.Name} - selection attached");
+        }
+    }
+    
+    // 🎯 LOST FOCUS: Automatically detach resize behavior and clear selection
+    private void OnControlLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (sender == _selectedControl)
+        {
+            DeselectControl();
+            Console.WriteLine($"🎯 LostFocus: cleared selection");
+        }
+    }
     
     private void SelectControl(Control control)
     {
-        // Deselect previous
-        DeselectControl();
+        // Deselect previous (if any)
+        if (_selectedControl != null && _selectedControl != control)
+        {
+            DeselectControl();
+        }
         
         _selectedControl = control;
         
@@ -381,7 +362,6 @@ public class DesignerLayout : ContentControl
         UpdatePropertiesPanel(control);
         
         UpdateStatus($"Selected: {control.Name} ({control.GetType().Name}) - Drag to move, resize from edges", false);
-        Console.WriteLine($"🎯 Selected: {control.Name}");
     }
     
     private void DeselectControl()
@@ -394,12 +374,6 @@ public class DesignerLayout : ContentControl
         
         UpdateStatus("Ready", false);
     }
-    
-    
-    
-    // Update selection border size AND position during resize
-    
-    // Finalize selection border after resize completes
     
     private void UpdatePropertiesPanel(Control control)
     {
@@ -514,6 +488,7 @@ public class DesignerLayout : ContentControl
             Background = background,
             BorderBrush = Brushes.Gray,
             BorderThickness = new Avalonia.Thickness(1),
+            Focusable = true,  // 🎯 CRITICAL: Must be focusable!
             Child = new TextBlock
             {
                 Text = displayText,
@@ -530,6 +505,19 @@ public class DesignerLayout : ContentControl
         return dummy;
     }
     
+    // 🎯 WIRE FOCUS EVENTS: Called for every selectable control
+    private void WireControlEvents(Control control)
+    {
+        // Make control focusable
+        control.Focusable = true;
+        
+        // Wire pointer events for drag/resize
+        control.PointerPressed += OnControlPointerPressed;
+        
+        // 🎯 Wire focus events for selection management
+        control.GotFocus += OnControlGotFocus;
+        control.LostFocus += OnControlLostFocus;
+    }
     
     // PUBLIC API - Called by ActionExecutor for soft-coded control creation
     public void AddControlToCanvas(string controlType, double x, double y, Dictionary<string,string> properties)
@@ -553,16 +541,15 @@ public class DesignerLayout : ContentControl
         
         // Add to canvas
         _designCanvas.Children.Add(newControl);
-        newControl.SetValue(Canvas.ZIndexProperty, 1); // Normal layer
         
-        // Make it selectable - dummy controls don't consume events
-        newControl.PointerPressed += OnControlPointerPressed;
+        // 🎯 Wire focus events
+        WireControlEvents(newControl);
         
         UpdateStatus($"Added {controlType} at ({(int)x}, {(int)y})", false);
         Console.WriteLine($"✅ Dummy control: Created {newControl.Name} at {(int)x},{(int)y}");
         
-        // Auto-select
-        SelectControl(newControl);
+        // Auto-select by focusing
+        newControl.Focus();
     }
     
     // TEST METHOD - Direct control creation
@@ -579,7 +566,8 @@ public class DesignerLayout : ContentControl
         { 
             Content = "TEST BUTTON", 
             Width = 120, 
-            Height = 40 
+            Height = 40,
+            Focusable = true  // 🎯 Make focusable
         };
         
         Canvas.SetLeft(testButton, 100);
@@ -588,14 +576,14 @@ public class DesignerLayout : ContentControl
         
         _designCanvas.Children.Add(testButton);
         
-        // Use AddHandler for button to receive handled events
-        testButton.AddHandler(PointerPressedEvent, OnControlPointerPressed, handledEventsToo: true);
+        // 🎯 Wire focus events
+        WireControlEvents(testButton);
         
         Console.WriteLine($"✅ TEST: Created {testButton.Name} at 100,100");
         Console.WriteLine($"✅ TEST: Canvas now has {_designCanvas.Children.Count} children");
         
         UpdateStatus($"TEST: Added {testButton.Name}", false);
-        SelectControl(testButton);
+        testButton.Focus();
     }
     
     private T? FindControl<T>(Control? parent, string name) where T : Control
@@ -647,10 +635,3 @@ public class DesignerLayout : ContentControl
     {
     }
 }
-
-
-
-
-
-
-
