@@ -877,7 +877,7 @@ public class DesignerLayout : ContentControl
         }
     }
 
-    private Control? FindControlByName(Control? root, string name)
+    public Control? FindControlByName(Control? root, string name)
     {
         if (root == null) return null;
         if (root.Name == name) return root;

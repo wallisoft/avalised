@@ -74,6 +74,8 @@ namespace Avalised
 
                     // Canvas actions
                     "canvas.addcontrol" => await ExecuteCanvasAddControl(parameters),
+                    // Panel actions
+                    "panel.toggle" => ExecutePanelToggle(parameters),
 
                     _ => throw new NotImplementedException($"Action '{actionName}' not implemented yet")
                 };
@@ -310,5 +312,14 @@ namespace Avalised
             
             return await Task.FromResult<object?>(null);
         }
+        private object? ExecutePanelToggle(Dictionary<string, string> parameters)
+        {
+            if (!parameters.TryGetValue("panel", out var panelName)) return null;
+            var containerName = panelName + "Container";
+            var container = _designerLayout?.FindControlByName(_designerLayout.Content as Control, containerName);
+            if (container != null) container.IsVisible = !container.IsVisible;
+            return null;
+        }
+
     }
 }
