@@ -235,6 +235,12 @@ public class UITreeBuilder
                 case "Margin":
                     control.Margin = Thickness.Parse(value);
                     break;
+                case "Padding":
+                    if (control is Border border4)
+                        border4.Padding = Thickness.Parse(value);
+                    else if (control is Decorator decorator)
+                        decorator.Padding = Thickness.Parse(value);
+                    break;
                 case "HorizontalAlignment":
                     control.HorizontalAlignment = Enum.Parse<HorizontalAlignment>(value, true);
                     break;
@@ -248,6 +254,14 @@ public class UITreeBuilder
                 case "LastChildFill":
                     if (control is DockPanel dp)
                         dp.LastChildFill = bool.Parse(value);
+                    break;
+                case "BorderThickness":
+                    if (control is Border border2)
+                        border2.BorderThickness = Thickness.Parse(value);
+                    break;
+                case "BorderBrush":
+                    if (control is Border border3)
+                        border3.BorderBrush = Brush.Parse(value);
                     break;
             }
         }
@@ -402,3 +416,5 @@ public class ControlAction
     public string ActionName { get; set; }
     public Dictionary<string, string> Parameters { get; set; }
 }
+
+
