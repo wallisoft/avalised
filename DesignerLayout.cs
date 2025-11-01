@@ -880,7 +880,7 @@ public class DesignerLayout : ContentControl
     public Control? FindControlByName(Control? root, string name)
     {
         if (root == null) return null;
-        if (root.Name == name) return root;
+        if (string.Equals(root.Name, name, StringComparison.OrdinalIgnoreCase)) return root;
         
         if (root is Panel panel)
         {
