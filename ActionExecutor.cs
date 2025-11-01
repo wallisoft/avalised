@@ -318,9 +318,15 @@ namespace Avalised
             var containerName = panelName + "Container";
             Console.WriteLine($"🔍 Searching for: {containerName}");
             var container = _designerLayout?.FindControlByName(_mainWindow.Content as Control, containerName);
-            if (container != null) container.IsVisible = !container.IsVisible;
-            else Console.WriteLine($"❌ Not found: {containerName}");
+            if (container != null)
+            {
+                container.IsVisible = !container.IsVisible;
                 Console.WriteLine($"✅ Toggled {containerName}: IsVisible={container.IsVisible}");
+            }
+            else
+            {
+                Console.WriteLine($"❌ Not found: {containerName}");
+            }
             return null;
         }
 
