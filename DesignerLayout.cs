@@ -34,6 +34,11 @@ public class DesignerLayout : ContentControl
     private Canvas? _designCanvas;
     private Control? _selectedControl;
     private Dictionary<Control, Dictionary<string, string>> _controlScripts = new();
+    
+    // Settings
+    private bool _snapToGrid = false;
+    private int _gridSize = 10;
+    private bool _showGrid = true;
     private ResizeBehavior? _resizeBehavior;
     
     public List<ControlAction>? Actions => _builder?.Actions;
@@ -809,5 +814,26 @@ public class DesignerLayout : ContentControl
         
         Console.WriteLine($"📝 Opening script editor for {control.Name}");
     }
+    
+    private double SnapToGrid(double value)
+    {
+        if (!_snapToGrid) return value;
+        return Math.Round(value / _gridSize) * _gridSize;
+    }
+    
+    public void ShowSettings()
+    {
+        var settingsWindow = new SettingsWindow(_snapToGrid, _gridSize, _showGrid);
+        settingsWindow.SettingsChanged += (s, e) =>
+        {
+            if (s is SettingsWindow sw)
+            {
+                _snapToGrid = sw.SnapToGrid;
+                _gridSize = sw.GridSize;
+                _showGrid = sw.ShowGrid;
+                UpdateStatus($"Settings: Snap={_snapToGrid}, Grid={_gridSize}px", false);
+            }
+        };
+        settingsWindow.Show();
+    }
 }
-
