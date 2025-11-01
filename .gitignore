@@ -40,6 +40,8 @@ TestResults/
 *.db
 *.db-shm
 *.db-wal
+# EXCEPT the essential designer database!
+!designer.db
 
 # Logs
 *.log
