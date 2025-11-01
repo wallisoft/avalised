@@ -11,18 +11,18 @@ public class MainWindow : Window
 {
     private DesignerLayout? _designerLayout;
     private ActionExecutor? _actionExecutor;
-    
+
     public MainWindow()
     {
         Title = "🌳 Avalised™ Designer";
         Width = 1280;
         Height = 720;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        
-        
-        
+
+
+
         LoadUI();
-        
+
         this.Opened += (s, e) => {
             WireUpEventHandlers();
             DumpVisualTree(this);
@@ -32,19 +32,41 @@ public class MainWindow : Window
 
     private void LoadUI()
     {
-        var dbPath = System.IO.Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Avalised",
-            "designer.db"
-        );
+        // Try repo directory first (for fresh clones!)
+        var repoDbPath = "designer.db";
+        
+        string dbPath;
+        if (System.IO.File.Exists(repoDbPath))
+        {
+            // Use the one in the repo directory
+            dbPath = repoDbPath;
+            Console.WriteLine($"✅ Using designer.db from repo: {System.IO.Path.GetFullPath(dbPath)}");
+        }
+        else
+        {
+            // Fall back to AppData location
+            var appDataPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Avalised",
+                "designer.db"
+            );
+            
+            if (!System.IO.File.Exists(appDataPath))
+            {
+                throw new Exception($"designer.db not found in current directory or {appDataPath}");
+            }
+            
+            dbPath = appDataPath;
+            Console.WriteLine($"✅ Using designer.db from AppData: {dbPath}");
+        }
 
         // Create designer layout - it loads everything from database
         _designerLayout = new DesignerLayout(dbPath);
-        
+
         // Create action executor
         _actionExecutor = new ActionExecutor(dbPath, this);
         _actionExecutor.SetDesignerLayout(_designerLayout);
-        
+
         // That's it! DesignerWindow includes menu, canvas, status bar
         Content = _designerLayout;
     }
@@ -88,13 +110,13 @@ public class MainWindow : Window
                 Console.WriteLine($"   ✓ {button.Name}: {action.ActionName}");
             }
         }
-        
+
         Console.WriteLine("✅ All actions wired!");
 
         // Keep legacy handlers for items not yet converted to Action system
         var menuItems = new Dictionary<string, MenuItem>();
         FindMenuItems(this, menuItems);
-        
+
         // These still need hardcoded handlers (not yet in AVML as Actions)
         WireMenuItem(menuItems, "HelpSystemInfo", OnHelpSystemInfo);
         WireMenuItem(menuItems, "HelpWiki", OnHelpWiki);
@@ -116,7 +138,7 @@ public class MainWindow : Window
         {
             if (!string.IsNullOrEmpty(menuItem.Name))
                 menuItems[menuItem.Name] = menuItem;
-            
+
             foreach (var item in menuItem.Items)
             {
                 if (item is MenuItem childMenuItem)
@@ -180,11 +202,11 @@ public class MainWindow : Window
                 "Avalised",
                 "designer.db"
             );
-            
+
             // Recreate designer layout
             _designerLayout = new DesignerLayout(dbPath);
             Content = _designerLayout;
-            
+
             // Rewire event handlers
             WireUpEventHandlers();
             DumpVisualTree(this);
@@ -249,7 +271,7 @@ public class MainWindow : Window
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        
+
         if (e.Key == Key.F8)
             OnPreviewToggle(this, new RoutedEventArgs());
         else if (e.Key == Key.F9)
@@ -266,16 +288,16 @@ public class MainWindow : Window
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 "avalised-tree.txt"));
         }
-        
-        writer.WriteLine($"{new string(' ', indent)}{control.GetType().Name} [{control.Name ?? "(unnamed)"}]" + 
+
+        writer.WriteLine($"{new string(' ', indent)}{control.GetType().Name} [{control.Name ?? "(unnamed)"}]" +
                         (control.IsVisible ? "" : " [HIDDEN]"));
-        
+
         foreach (var child in control.GetVisualChildren())
         {
             if (child is Control c)
                 DumpVisualTree(c, indent + 2, writer);
         }
-        
+
         if (ownWriter)
         {
             writer.Close();
