@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Microsoft.Data.Sqlite;
@@ -92,11 +93,11 @@ namespace Avalised
         {
             using var connection = new SqliteConnection($"Data Source={_dbPath}");
             connection.Open();
-            
+
             var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM actions WHERE name = @name";
             cmd.Parameters.AddWithValue("@name", actionName);
-            
+
             var count = Convert.ToInt32(cmd.ExecuteScalar());
             return count > 0;
         }
@@ -132,7 +133,7 @@ namespace Avalised
             var title = parameters.GetValueOrDefault("title", "Confirm");
             var message = parameters.GetValueOrDefault("message", "Are you sure?");
             var result = await DialogService.ShowConfirm(title, message);
-            
+
             // Execute follow-up actions if defined
             if (result && parameters.ContainsKey("on_yes"))
             {
@@ -142,7 +143,7 @@ namespace Avalised
             {
                 await ExecuteAsync(parameters["on_no"], new Dictionary<string, string>());
             }
-            
+
             return result;
         }
 
@@ -152,12 +153,12 @@ namespace Avalised
             var message = parameters.GetValueOrDefault("message", "Enter value:");
             var defaultValue = parameters.GetValueOrDefault("default", "");
             var result = await DialogService.ShowInput(title, message, defaultValue);
-            
+
             if (result != null)
             {
                 _designerLayout?.UpdateStatus($"Input: {result}", false);
             }
-            
+
             return result;
         }
 
@@ -166,13 +167,13 @@ namespace Avalised
             var title = parameters.GetValueOrDefault("title", "Open File");
             var filter = parameters.GetValueOrDefault("filter", "*.*");
             var directory = parameters.GetValueOrDefault("directory");
-            
+
             var result = await DialogService.ShowOpenFile(title, directory, filter);
-            
+
             if (result != null)
             {
                 _designerLayout?.UpdateStatus($"Selected: {result}", false);
-                
+
                 // Execute target action if defined
                 if (parameters.ContainsKey("target"))
                 {
@@ -180,7 +181,7 @@ namespace Avalised
                     await ExecuteAsync(parameters["target"], targetParams);
                 }
             }
-            
+
             return result;
         }
 
@@ -189,14 +190,14 @@ namespace Avalised
             var title = parameters.GetValueOrDefault("title", "Save File");
             var extension = parameters.GetValueOrDefault("extension", "txt");
             var directory = parameters.GetValueOrDefault("directory");
-            
+
             var result = await DialogService.ShowSaveFile(title, directory, extension);
-            
+
             if (result != null)
             {
                 _designerLayout?.UpdateStatus($"Save to: {result}", false);
             }
-            
+
             return result;
         }
 
@@ -204,14 +205,14 @@ namespace Avalised
         {
             var title = parameters.GetValueOrDefault("title", "Select Folder");
             var directory = parameters.GetValueOrDefault("directory");
-            
+
             var result = await DialogService.ShowSelectFolder(title, directory);
-            
+
             if (result != null)
             {
                 _designerLayout?.UpdateStatus($"Selected folder: {result}", false);
             }
-            
+
             return result;
         }
 
@@ -252,6 +253,43 @@ namespace Avalised
         private async Task<object?> ExecuteFileExport(Dictionary<string, string> parameters)
         {
             _designerLayout?.UpdateStatus("Exporting to AVML...", false);
+            
+            try
+            {
+                // Get the designer content to export
+                if (_designerLayout?.Content is Control rootControl)
+                {
+                    // Prompt for save location
+                    var filePath = await DialogService.ShowSaveFile(
+                        "Export to AVML",
+                        null,
+                        "avml"
+                    );
+                    
+                    if (!string.IsNullOrEmpty(filePath))
+                    {
+                        var exporter = new AVMLExporter();
+                        exporter.ExportToFile(rootControl, filePath);
+                        
+                        _designerLayout?.UpdateStatus($"Exported to {Path.GetFileName(filePath)}", false);
+                        await DialogService.ShowInfo("Export Successful", $"Designer exported to:\n{filePath}");
+                    }
+                    else
+                    {
+                        _designerLayout?.UpdateStatus("Export cancelled", false);
+                    }
+                }
+                else
+                {
+                    await DialogService.ShowError("Export Error", "No designer content to export");
+                }
+            }
+            catch (Exception ex)
+            {
+                _designerLayout?.UpdateStatus("Export failed", false);
+                await DialogService.ShowError("Export Error", $"Failed to export:\n{ex.Message}");
+            }
+            
             return null;
         }
 
@@ -280,7 +318,7 @@ namespace Avalised
 
         private async Task<object?> ExecuteAppAbout(Dictionary<string, string> parameters)
         {
-            await DialogService.ShowInfo("About Avalised", 
+            await DialogService.ShowInfo("About Avalised",
                 "Avalised Designer 1.0\n" +
                 "YAML-driven RAD IDE\n\n" +
                 "© 2024 Steve Wallis\n" +
@@ -301,15 +339,15 @@ namespace Avalised
         }
 
         // ========== CANVAS ACTIONS ==========
-        
+
         private async Task<object?> ExecuteCanvasAddControl(Dictionary<string, string> parameters)
         {
             var type = parameters.GetValueOrDefault("type", "Button");
             var x = double.Parse(parameters.GetValueOrDefault("x", "100"));
             var y = double.Parse(parameters.GetValueOrDefault("y", "100"));
-            
+
             _designerLayout?.AddControlToCanvas(type, x, y, parameters);
-            
+
             return await Task.FromResult<object?>(null);
         }
         private object? ExecutePanelToggle(Dictionary<string, string> parameters)
