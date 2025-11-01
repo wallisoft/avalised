@@ -121,7 +121,7 @@ public class DesignerLayout : ContentControl
         // Deselection (click on empty canvas)
         _designCanvas.PointerPressed += OnCanvasPointerPressed;
         
-        Console.WriteLine("✅ Canvas events wired (GotFocus/LostFocus pattern)");
+        Console.WriteLine("✅ Canvas events wired (GotFocus/LostFocus + Boundaries + ContextMenu)");
     }
     
     private void OnToolboxButtonPressed(string controlType, PointerPressedEventArgs e)
@@ -145,18 +145,32 @@ public class DesignerLayout : ContentControl
             _resizeBehavior.HandlePointerMoved(sender, e);
         }
         
-        // Handle control dragging (moving existing controls) - OPTIMIZED!
+        // Handle control dragging (moving existing controls) - OPTIMIZED + BOUNDED!
         if (_isDraggingControl && _draggedControl != null && _dragTransform != null)
         {
             var deltaX = pos.X - _dragStartPoint.X;
             var deltaY = pos.Y - _dragStartPoint.Y;
             
+            // 🎯 BOUNDARY CHECK: Constrain to canvas bounds
+            var newLeft = _dragStartLeft + deltaX;
+            var newTop = _dragStartTop + deltaY;
+            var controlWidth = _draggedControl.Bounds.Width;
+            var controlHeight = _draggedControl.Bounds.Height;
+            var canvasWidth = _designCanvas.Bounds.Width;
+            var canvasHeight = _designCanvas.Bounds.Height;
+            
+            // Clamp position to keep control within canvas
+            newLeft = Math.Max(0, Math.Min(newLeft, canvasWidth - controlWidth));
+            newTop = Math.Max(0, Math.Min(newTop, canvasHeight - controlHeight));
+            
+            // Recalculate constrained delta
+            deltaX = newLeft - _dragStartLeft;
+            deltaY = newTop - _dragStartTop;
+            
             // 🚀 GPU-ACCELERATED: Just update the transform, NO layout recalculation!
             _dragTransform.X = deltaX;
             _dragTransform.Y = deltaY;
 
-            var newLeft = _dragStartLeft + deltaX;
-            var newTop = _dragStartTop + deltaY;
             UpdateStatus($"Moving: {_draggedControl.Name} to ({(int)newLeft}, {(int)newTop})", false);
             return;
         }
@@ -179,7 +193,7 @@ public class DesignerLayout : ContentControl
         // Handle control drag end - COMMIT the transform to actual position
         if (_isDraggingControl && _draggedControl != null && _dragTransform != null)
         {
-            // Calculate final position
+            // Calculate final position (already bounded during drag)
             var finalLeft = _dragStartLeft + _dragTransform.X;
             var finalTop = _dragStartTop + _dragTransform.Y;
             
@@ -252,9 +266,14 @@ public class DesignerLayout : ContentControl
         // Create dummy control
         var newControl = CreateDummyControl(_dragControlType, properties);
         
-        // Position it
-        Canvas.SetLeft(newControl, pos.X);
-        Canvas.SetTop(newControl, pos.Y);
+        // Position it (with boundary check)
+        var width = double.Parse(properties["width"]);
+        var height = double.Parse(properties["height"]);
+        var left = Math.Max(0, Math.Min(pos.X, _designCanvas.Bounds.Width - width));
+        var top = Math.Max(0, Math.Min(pos.Y, _designCanvas.Bounds.Height - height));
+        
+        Canvas.SetLeft(newControl, left);
+        Canvas.SetTop(newControl, top);
         
         // Give it a unique name
         newControl.Name = $"{_dragControlType}_{DateTime.Now.Ticks % 10000}";
@@ -266,8 +285,8 @@ public class DesignerLayout : ContentControl
         // 🎯 FOCUS PATTERN: Wire focus events and make focusable
         WireControlEvents(newControl);
         
-        UpdateStatus($"Added {_dragControlType} at ({(int)pos.X}, {(int)pos.Y})", false);
-        Console.WriteLine($"✅ Dummy control: Created {newControl.Name} at {(int)pos.X},{(int)pos.Y}");
+        UpdateStatus($"Added {_dragControlType} at ({(int)left}, {(int)top})", false);
+        Console.WriteLine($"✅ Dummy control: Created {newControl.Name} at {(int)left},{(int)top}");
         
         // Auto-select the new control by focusing it
         newControl.Focus();
@@ -353,16 +372,23 @@ public class DesignerLayout : ContentControl
         
         _selectedControl = control;
         
-        // 🚀 ATTACH RESIZE BEHAVIOR!
+        // 🚀 ATTACH RESIZE BEHAVIOR (with canvas bounds)!
         if (_designCanvas != null)
         {
-            _resizeBehavior = new ResizeBehavior(control, _designCanvas, minWidth: 20, minHeight: 20);
+            _resizeBehavior = new ResizeBehavior(
+                control, 
+                _designCanvas, 
+                minWidth: 20, 
+                minHeight: 20,
+                maxWidth: _designCanvas.Bounds.Width,
+                maxHeight: _designCanvas.Bounds.Height
+            );
         }
         
         // Update properties panel
         UpdatePropertiesPanel(control);
         
-        UpdateStatus($"Selected: {control.Name} ({control.GetType().Name}) - Drag to move, resize from edges", false);
+        UpdateStatus($"Selected: {control.Name} ({control.GetType().Name}) - Drag to move, resize from edges, right-click for menu", false);
     }
     
     private void DeselectControl()
@@ -506,6 +532,123 @@ public class DesignerLayout : ContentControl
         return dummy;
     }
     
+    // 🎯 CREATE CONTEXT MENU for control
+    private ContextMenu CreateControlContextMenu(Control control)
+    {
+        var menu = new ContextMenu();
+        
+        // Delete
+        var deleteItem = new MenuItem { Header = "Delete" };
+        deleteItem.Click += (s, e) => DeleteControl(control);
+        menu.Items.Add(deleteItem);
+        
+        menu.Items.Add(new Separator());
+        
+        // Copy
+        var copyItem = new MenuItem { Header = "Copy", IsEnabled = false };
+        menu.Items.Add(copyItem);
+        
+        // Paste
+        var pasteItem = new MenuItem { Header = "Paste", IsEnabled = false };
+        menu.Items.Add(pasteItem);
+        
+        // Duplicate
+        var duplicateItem = new MenuItem { Header = "Duplicate" };
+        duplicateItem.Click += (s, e) => DuplicateControl(control);
+        menu.Items.Add(duplicateItem);
+        
+        menu.Items.Add(new Separator());
+        
+        // Bring to Front
+        var bringToFrontItem = new MenuItem { Header = "Bring to Front" };
+        bringToFrontItem.Click += (s, e) => BringToFront(control);
+        menu.Items.Add(bringToFrontItem);
+        
+        // Send to Back
+        var sendToBackItem = new MenuItem { Header = "Send to Back" };
+        sendToBackItem.Click += (s, e) => SendToBack(control);
+        menu.Items.Add(sendToBackItem);
+        
+        menu.Items.Add(new Separator());
+        
+        // Properties
+        var propertiesItem = new MenuItem { Header = "Properties" };
+        propertiesItem.Click += (s, e) => ShowProperties(control);
+        menu.Items.Add(propertiesItem);
+        
+        return menu;
+    }
+    
+    // Context menu actions
+    private void DeleteControl(Control control)
+    {
+        if (_designCanvas == null) return;
+        
+        _designCanvas.Children.Remove(control);
+        if (_selectedControl == control)
+        {
+            DeselectControl();
+        }
+        
+        Console.WriteLine($"🗑️ Deleted: {control.Name}");
+        UpdateStatus($"Deleted {control.Name}", false);
+    }
+    
+    private void DuplicateControl(Control control)
+    {
+        if (_designCanvas == null) return;
+        
+        // Get current properties
+        var properties = new Dictionary<string, string>();
+        properties["width"] = control.Width.ToString();
+        properties["height"] = control.Height.ToString();
+        
+        if (control.Tag is string controlType)
+        {
+            // Offset the duplicate slightly
+            var left = Canvas.GetLeft(control) + 20;
+            var top = Canvas.GetTop(control) + 20;
+            
+            var newControl = CreateDummyControl(controlType, properties);
+            Canvas.SetLeft(newControl, left);
+            Canvas.SetTop(newControl, top);
+            newControl.Name = $"{controlType}_{DateTime.Now.Ticks % 10000}";
+            
+            _designCanvas.Children.Add(newControl);
+            WireControlEvents(newControl);
+            
+            newControl.Focus();
+            Console.WriteLine($"📋 Duplicated: {control.Name} → {newControl.Name}");
+        }
+    }
+    
+    private void BringToFront(Control control)
+    {
+        if (_designCanvas == null) return;
+        
+        var maxZ = 0;
+        foreach (var child in _designCanvas.Children)
+        {
+            var z = child.GetValue(Canvas.ZIndexProperty);
+            if (z > maxZ) maxZ = z;
+        }
+        
+        control.SetValue(Canvas.ZIndexProperty, maxZ + 1);
+        Console.WriteLine($"⬆️ Brought to front: {control.Name} (Z={maxZ + 1})");
+    }
+    
+    private void SendToBack(Control control)
+    {
+        control.SetValue(Canvas.ZIndexProperty, 0);
+        Console.WriteLine($"⬇️ Sent to back: {control.Name} (Z=0)");
+    }
+    
+    private void ShowProperties(Control control)
+    {
+        control.Focus();
+        UpdateStatus($"Properties: {control.Name}", false);
+    }
+    
     // 🎯 WIRE FOCUS EVENTS: Called for every selectable control
     private void WireControlEvents(Control control)
     {
@@ -518,6 +661,9 @@ public class DesignerLayout : ContentControl
         // 🎯 Wire focus events for selection management
         control.GotFocus += OnControlGotFocus;
         control.LostFocus += OnControlLostFocus;
+        
+        // 🎯 CONTEXT MENU!
+        control.ContextMenu = CreateControlContextMenu(control);
     }
     
     // PUBLIC API - Called by ActionExecutor for soft-coded control creation
@@ -532,9 +678,14 @@ public class DesignerLayout : ContentControl
         // Create dummy control for design mode
         Control newControl = CreateDummyControl(controlType, properties);
         
-        // Position it
-        Canvas.SetLeft(newControl, x);
-        Canvas.SetTop(newControl, y);
+        // Position it (with boundary check)
+        var width = properties.TryGetValue("width", out var w) ? double.Parse(w) : 100;
+        var height = properties.TryGetValue("height", out var h) ? double.Parse(h) : 32;
+        var left = Math.Max(0, Math.Min(x, _designCanvas.Bounds.Width - width));
+        var top = Math.Max(0, Math.Min(y, _designCanvas.Bounds.Height - height));
+        
+        Canvas.SetLeft(newControl, left);
+        Canvas.SetTop(newControl, top);
         newControl.SetValue(Canvas.ZIndexProperty, 1); // Normal layer
         
         // Name it
@@ -543,11 +694,11 @@ public class DesignerLayout : ContentControl
         // Add to canvas
         _designCanvas.Children.Add(newControl);
         
-        // 🎯 Wire focus events
+        // 🎯 Wire focus events + context menu
         WireControlEvents(newControl);
         
-        UpdateStatus($"Added {controlType} at ({(int)x}, {(int)y})", false);
-        Console.WriteLine($"✅ Dummy control: Created {newControl.Name} at {(int)x},{(int)y}");
+        UpdateStatus($"Added {controlType} at ({(int)left}, {(int)top})", false);
+        Console.WriteLine($"✅ Dummy control: Created {newControl.Name} at {(int)left},{(int)top}");
         
         // Auto-select by focusing
         newControl.Focus();
@@ -577,7 +728,7 @@ public class DesignerLayout : ContentControl
         
         _designCanvas.Children.Add(testButton);
         
-        // 🎯 Wire focus events
+        // 🎯 Wire focus events + context menu
         WireControlEvents(testButton);
         
         Console.WriteLine($"✅ TEST: Created {testButton.Name} at 100,100");
@@ -636,4 +787,3 @@ public class DesignerLayout : ContentControl
     {
     }
 }
-

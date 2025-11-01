@@ -10,6 +10,7 @@ namespace Avalised;
 /// Provides smooth, GPU-accelerated resize functionality for canvas controls
 /// 8 resize handles: 4 corners + 4 edges
 /// Uses RenderTransform during drag, commits to Width/Height on release
+/// NOW WITH BOUNDARY CHECKING! 🎯
 /// </summary>
 public class ResizeBehavior
 {
@@ -17,6 +18,8 @@ public class ResizeBehavior
     private readonly Canvas _canvas;
     private readonly double _minWidth;
     private readonly double _minHeight;
+    private readonly double _maxWidth;
+    private readonly double _maxHeight;
     private readonly double _handleSize = 8; // Hit test zone size in pixels
     
     private ResizeHandle _activeHandle = ResizeHandle.None;
@@ -46,12 +49,20 @@ public class ResizeBehavior
         Left
     }
     
-    public ResizeBehavior(Control control, Canvas canvas, double minWidth = 20, double minHeight = 20)
+    public ResizeBehavior(
+        Control control, 
+        Canvas canvas, 
+        double minWidth = 20, 
+        double minHeight = 20,
+        double maxWidth = double.MaxValue,
+        double maxHeight = double.MaxValue)
     {
         _control = control;
         _canvas = canvas;
         _minWidth = minWidth;
         _minHeight = minHeight;
+        _maxWidth = maxWidth;
+        _maxHeight = maxHeight;
     }
     
     // NOTE: ResizeBehavior does NOT attach event handlers!
@@ -205,7 +216,7 @@ public class ResizeBehavior
     }
     
     /// <summary>
-    /// Perform resize using GPU-accelerated transforms
+    /// Perform resize using GPU-accelerated transforms WITH BOUNDARY CHECKING! 🎯
     /// </summary>
     private void PerformResize(PointerEventArgs e)
     {
@@ -223,69 +234,187 @@ public class ResizeBehavior
         switch (_activeHandle)
         {
             case ResizeHandle.Right:
-                scaleX = Math.Max(_minWidth / _startWidth, (_startWidth + deltaX) / _startWidth);
+                {
+                    var newWidth = _startWidth + deltaX;
+                    newWidth = Math.Max(_minWidth, Math.Min(newWidth, _maxWidth));
+                    newWidth = Math.Min(newWidth, _canvas.Bounds.Width - _startLeft); // Don't exceed canvas right edge
+                    scaleX = newWidth / _startWidth;
+                }
                 break;
                 
             case ResizeHandle.Bottom:
-                scaleY = Math.Max(_minHeight / _startHeight, (_startHeight + deltaY) / _startHeight);
+                {
+                    var newHeight = _startHeight + deltaY;
+                    newHeight = Math.Max(_minHeight, Math.Min(newHeight, _maxHeight));
+                    newHeight = Math.Min(newHeight, _canvas.Bounds.Height - _startTop); // Don't exceed canvas bottom edge
+                    scaleY = newHeight / _startHeight;
+                }
                 break;
                 
             case ResizeHandle.Left:
-                scaleX = Math.Max(_minWidth / _startWidth, (_startWidth - deltaX) / _startWidth);
-                if (scaleX > _minWidth / _startWidth)
                 {
-                    translateX = deltaX;
-                    Canvas.SetLeft(_control, _startLeft + deltaX);
+                    var newWidth = _startWidth - deltaX;
+                    newWidth = Math.Max(_minWidth, Math.Min(newWidth, _maxWidth));
+                    var newLeft = _startLeft + deltaX;
+                    newLeft = Math.Max(0, newLeft); // Don't go past left edge
+                    
+                    // Recalculate if we hit the boundary
+                    if (newLeft == 0)
+                    {
+                        newWidth = _startWidth + _startLeft;
+                        scaleX = newWidth / _startWidth;
+                        translateX = -_startLeft;
+                        Canvas.SetLeft(_control, 0);
+                    }
+                    else
+                    {
+                        scaleX = newWidth / _startWidth;
+                        translateX = deltaX;
+                        Canvas.SetLeft(_control, newLeft);
+                    }
                 }
                 break;
                 
             case ResizeHandle.Top:
-                scaleY = Math.Max(_minHeight / _startHeight, (_startHeight - deltaY) / _startHeight);
-                if (scaleY > _minHeight / _startHeight)
                 {
-                    translateY = deltaY;
-                    Canvas.SetTop(_control, _startTop + deltaY);
+                    var newHeight = _startHeight - deltaY;
+                    newHeight = Math.Max(_minHeight, Math.Min(newHeight, _maxHeight));
+                    var newTop = _startTop + deltaY;
+                    newTop = Math.Max(0, newTop); // Don't go past top edge
+                    
+                    // Recalculate if we hit the boundary
+                    if (newTop == 0)
+                    {
+                        newHeight = _startHeight + _startTop;
+                        scaleY = newHeight / _startHeight;
+                        translateY = -_startTop;
+                        Canvas.SetTop(_control, 0);
+                    }
+                    else
+                    {
+                        scaleY = newHeight / _startHeight;
+                        translateY = deltaY;
+                        Canvas.SetTop(_control, newTop);
+                    }
                 }
                 break;
                 
             case ResizeHandle.TopLeft:
-                scaleX = Math.Max(_minWidth / _startWidth, (_startWidth - deltaX) / _startWidth);
-                scaleY = Math.Max(_minHeight / _startHeight, (_startHeight - deltaY) / _startHeight);
-                if (scaleX > _minWidth / _startWidth)
                 {
-                    translateX = deltaX;
-                    Canvas.SetLeft(_control, _startLeft + deltaX);
-                }
-                if (scaleY > _minHeight / _startHeight)
-                {
-                    translateY = deltaY;
-                    Canvas.SetTop(_control, _startTop + deltaY);
+                    // Handle horizontal
+                    var newWidth = _startWidth - deltaX;
+                    newWidth = Math.Max(_minWidth, Math.Min(newWidth, _maxWidth));
+                    var newLeft = _startLeft + deltaX;
+                    newLeft = Math.Max(0, newLeft);
+                    
+                    if (newLeft == 0)
+                    {
+                        newWidth = _startWidth + _startLeft;
+                        scaleX = newWidth / _startWidth;
+                        translateX = -_startLeft;
+                        Canvas.SetLeft(_control, 0);
+                    }
+                    else
+                    {
+                        scaleX = newWidth / _startWidth;
+                        translateX = deltaX;
+                        Canvas.SetLeft(_control, newLeft);
+                    }
+                    
+                    // Handle vertical
+                    var newHeight = _startHeight - deltaY;
+                    newHeight = Math.Max(_minHeight, Math.Min(newHeight, _maxHeight));
+                    var newTop = _startTop + deltaY;
+                    newTop = Math.Max(0, newTop);
+                    
+                    if (newTop == 0)
+                    {
+                        newHeight = _startHeight + _startTop;
+                        scaleY = newHeight / _startHeight;
+                        translateY = -_startTop;
+                        Canvas.SetTop(_control, 0);
+                    }
+                    else
+                    {
+                        scaleY = newHeight / _startHeight;
+                        translateY = deltaY;
+                        Canvas.SetTop(_control, newTop);
+                    }
                 }
                 break;
                 
             case ResizeHandle.TopRight:
-                scaleX = Math.Max(_minWidth / _startWidth, (_startWidth + deltaX) / _startWidth);
-                scaleY = Math.Max(_minHeight / _startHeight, (_startHeight - deltaY) / _startHeight);
-                if (scaleY > _minHeight / _startHeight)
                 {
-                    translateY = deltaY;
-                    Canvas.SetTop(_control, _startTop + deltaY);
+                    // Handle horizontal
+                    var newWidth = _startWidth + deltaX;
+                    newWidth = Math.Max(_minWidth, Math.Min(newWidth, _maxWidth));
+                    newWidth = Math.Min(newWidth, _canvas.Bounds.Width - _startLeft);
+                    scaleX = newWidth / _startWidth;
+                    
+                    // Handle vertical
+                    var newHeight = _startHeight - deltaY;
+                    newHeight = Math.Max(_minHeight, Math.Min(newHeight, _maxHeight));
+                    var newTop = _startTop + deltaY;
+                    newTop = Math.Max(0, newTop);
+                    
+                    if (newTop == 0)
+                    {
+                        newHeight = _startHeight + _startTop;
+                        scaleY = newHeight / _startHeight;
+                        translateY = -_startTop;
+                        Canvas.SetTop(_control, 0);
+                    }
+                    else
+                    {
+                        scaleY = newHeight / _startHeight;
+                        translateY = deltaY;
+                        Canvas.SetTop(_control, newTop);
+                    }
                 }
                 break;
                 
             case ResizeHandle.BottomLeft:
-                scaleX = Math.Max(_minWidth / _startWidth, (_startWidth - deltaX) / _startWidth);
-                scaleY = Math.Max(_minHeight / _startHeight, (_startHeight + deltaY) / _startHeight);
-                if (scaleX > _minWidth / _startWidth)
                 {
-                    translateX = deltaX;
-                    Canvas.SetLeft(_control, _startLeft + deltaX);
+                    // Handle horizontal
+                    var newWidth = _startWidth - deltaX;
+                    newWidth = Math.Max(_minWidth, Math.Min(newWidth, _maxWidth));
+                    var newLeft = _startLeft + deltaX;
+                    newLeft = Math.Max(0, newLeft);
+                    
+                    if (newLeft == 0)
+                    {
+                        newWidth = _startWidth + _startLeft;
+                        scaleX = newWidth / _startWidth;
+                        translateX = -_startLeft;
+                        Canvas.SetLeft(_control, 0);
+                    }
+                    else
+                    {
+                        scaleX = newWidth / _startWidth;
+                        translateX = deltaX;
+                        Canvas.SetLeft(_control, newLeft);
+                    }
+                    
+                    // Handle vertical
+                    var newHeight = _startHeight + deltaY;
+                    newHeight = Math.Max(_minHeight, Math.Min(newHeight, _maxHeight));
+                    newHeight = Math.Min(newHeight, _canvas.Bounds.Height - _startTop);
+                    scaleY = newHeight / _startHeight;
                 }
                 break;
                 
             case ResizeHandle.BottomRight:
-                scaleX = Math.Max(_minWidth / _startWidth, (_startWidth + deltaX) / _startWidth);
-                scaleY = Math.Max(_minHeight / _startHeight, (_startHeight + deltaY) / _startHeight);
+                {
+                    var newWidth = _startWidth + deltaX;
+                    newWidth = Math.Max(_minWidth, Math.Min(newWidth, _maxWidth));
+                    newWidth = Math.Min(newWidth, _canvas.Bounds.Width - _startLeft);
+                    scaleX = newWidth / _startWidth;
+                    
+                    var newHeight = _startHeight + deltaY;
+                    newHeight = Math.Max(_minHeight, Math.Min(newHeight, _maxHeight));
+                    newHeight = Math.Min(newHeight, _canvas.Bounds.Height - _startTop);
+                    scaleY = newHeight / _startHeight;
+                }
                 break;
         }
         
