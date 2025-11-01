@@ -33,6 +33,7 @@ public class DesignerLayout : ContentControl
     
     private Canvas? _designCanvas;
     private Control? _selectedControl;
+    private Dictionary<Control, Dictionary<string, string>> _controlScripts = new();
     private ResizeBehavior? _resizeBehavior;
     
     public List<ControlAction>? Actions => _builder?.Actions;
@@ -537,6 +538,13 @@ public class DesignerLayout : ContentControl
     {
         var menu = new ContextMenu();
         
+        // Edit Script... 🎯
+        var scriptItem = new MenuItem { Header = "Edit Script..." };
+        scriptItem.Click += (s, e) => EditControlScript(control);
+        menu.Items.Add(scriptItem);
+        
+        menu.Items.Add(new Separator());
+        
         // Delete
         var deleteItem = new MenuItem { Header = "Delete" };
         deleteItem.Click += (s, e) => DeleteControl(control);
@@ -786,4 +794,20 @@ public class DesignerLayout : ContentControl
     public void TogglePreviewMode()
     {
     }
+    
+    private void EditControlScript(Control control)
+    {
+        // Get or create script dictionary for this control
+        if (!_controlScripts.ContainsKey(control))
+        {
+            _controlScripts[control] = new Dictionary<string, string>();
+        }
+        
+        // Open script editor window
+        var scriptEditor = new ScriptEditorWindow(control, _controlScripts[control]);
+        scriptEditor.Show();
+        
+        Console.WriteLine($"📝 Opening script editor for {control.Name}");
+    }
 }
+
