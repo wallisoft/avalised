@@ -52,6 +52,7 @@ public class DesignerLayout : ContentControl
         Dispatcher.UIThread.Post(() =>
         {
             WireCanvasEvents();
+            WireActions();
         }, DispatcherPriority.Loaded);
     }
     
@@ -835,5 +836,72 @@ public class DesignerLayout : ContentControl
             }
         };
         settingsWindow.Show();
+    }
+
+    private void WireActions()
+    {
+        if (_builder?.Actions == null) return;
+        
+        foreach (var action in _builder.Actions)
+        {
+            if (action.Control is Button button)
+            {
+                button.Click += (sender, e) => HandleAction(action.ActionName, action.Parameters);
+            }
+            else if (action.Control is MenuItem menuItem)
+            {
+                menuItem.Click += (sender, e) => HandleAction(action.ActionName, action.Parameters);
+            }
+        }
+    }
+
+    private void HandleAction(string actionName, Dictionary<string, string> parameters)
+    {
+        switch (actionName)
+        {
+            case "panel.toggle":
+                if (parameters.TryGetValue("panel", out var panelName))
+                {
+                    TogglePanel(panelName);
+                }
+                break;
+        }
+    }
+
+    private void TogglePanel(string panelName)
+    {
+        var container = FindControlByName(Content as Control, panelName + "Container");
+        if (container != null)
+        {
+            container.IsVisible = !container.IsVisible;
+        }
+    }
+
+    private Control? FindControlByName(Control? root, string name)
+    {
+        if (root == null) return null;
+        if (root.Name == name) return root;
+        
+        if (root is Panel panel)
+        {
+            foreach (var child in panel.Children)
+            {
+                if (child is Control ctrl)
+                {
+                    var found = FindControlByName(ctrl, name);
+                    if (found != null) return found;
+                }
+            }
+        }
+        else if (root is ContentControl contentControl && contentControl.Content is Control content)
+        {
+            return FindControlByName(content, name);
+        }
+        else if (root is Decorator decorator && decorator.Child is Control child)
+        {
+            return FindControlByName(child, name);
+        }
+        
+        return null;
     }
 }
