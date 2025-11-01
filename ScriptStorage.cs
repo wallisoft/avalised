@@ -250,7 +250,7 @@ public class ScriptStorage
         cmd.ExecuteNonQuery();
     }
     
-    public List<(string control, string event, string time, bool success)> GetRecentExecutions(int limit = 50)
+    public List<(string, string, string, bool)> GetRecentExecutions(int limit = 50)
     {
         var executions = new List<(string, string, string, bool)>();
         
@@ -280,3 +280,4 @@ public class ScriptStorage
         return executions;
     }
 }
+
