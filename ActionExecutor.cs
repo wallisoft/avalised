@@ -316,8 +316,11 @@ namespace Avalised
         {
             if (!parameters.TryGetValue("panel", out var panelName)) return null;
             var containerName = panelName + "Container";
-            var container = _designerLayout?.FindControlByName(_designerLayout.Content as Control, containerName);
+            Console.WriteLine($"🔍 Searching for: {containerName}");
+            var container = _designerLayout?.FindControlByName(_mainWindow.Content as Control, containerName);
             if (container != null) container.IsVisible = !container.IsVisible;
+            else Console.WriteLine($"❌ Not found: {containerName}");
+                Console.WriteLine($"✅ Toggled {containerName}: IsVisible={container.IsVisible}");
             return null;
         }
 
