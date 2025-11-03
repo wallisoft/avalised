@@ -1,0 +1,252 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Avalonia.Controls;
+using Avalonia.Layout;
+
+namespace VB;
+
+public class ControlBuilder
+{
+    private List<VmlControl> vmlControls;
+    private Dictionary<string, Control> controls = new();
+    
+    public ControlBuilder(List<VmlControl> vml)
+    {
+        vmlControls = vml;
+    }
+    
+    public Window? BuildWindow()
+    {
+        CreateAllControls();
+        BuildHierarchy();
+        
+        return controls.Values.OfType<Window>().FirstOrDefault();
+    }
+    
+    private void CreateAllControls()
+    {
+        foreach (var vmlControl in vmlControls)
+        {
+            var control = CreateControl(vmlControl);
+            if (control != null && vmlControl.Name != null)
+            {
+                controls[vmlControl.Name] = control;
+            }
+        }
+    }
+    
+        private Control? CreateControl(VmlControl vmlControl)
+    {
+        var fullTypeName = $"Avalonia.Controls.{vmlControl.Type}, Avalonia.Controls";
+        var controlType = Type.GetType(fullTypeName);
+        
+        if (controlType == null)
+        {
+            fullTypeName = $"Avalonia.Controls.{vmlControl.Type}";
+            controlType = Type.GetType(fullTypeName);
+        }
+        
+        if (controlType == null || !typeof(Control).IsAssignableFrom(controlType))
+            return null;
+            
+        var control = Activator.CreateInstance(controlType) as Control;
+        
+        if (control == null) return null;
+        
+        // SET THE NAME!
+        if (vmlControl.Name != null)
+        {
+            control.Name = vmlControl.Name;
+        }
+        
+        foreach (var prop in vmlControl.Properties)
+        {
+            if (prop.Key == "Parent") continue;
+            if (prop.Key.Contains('.')) continue;
+            
+            SetProperty(control, prop.Key, prop.Value);
+        }
+        
+        return control;
+    }
+    
+    private void BuildHierarchy()
+{
+    foreach (var vmlControl in vmlControls)
+    {
+        if (!vmlControl.Properties.ContainsKey("Parent")) continue;
+        if (vmlControl.Name == null || !controls.ContainsKey(vmlControl.Name)) continue;
+        
+        var child = controls[vmlControl.Name];
+        var parentName = vmlControl.Properties["Parent"];
+        
+        if (!controls.ContainsKey(parentName)) continue;
+        
+        var parent = controls[parentName];
+        
+        // SET ATTACHED PROPERTIES BEFORE ADDING TO PARENT
+        foreach (var prop in vmlControl.Properties)
+        {
+            if (prop.Key.Contains('.'))
+            {
+                SetAttachedProperty(child, prop.Key, prop.Value);
+            }
+        }
+        
+        // NOW ADD TO PARENT
+        if (parent is Panel panel)
+        {
+            panel.Children.Add(child);
+        }
+        else if (parent is Decorator decorator)
+        {
+            decorator.Child = child;
+        }
+        else if (parent is ContentControl contentControl)
+        {
+            contentControl.Content = child;
+        }
+        else if (parent is Window window)
+        {
+            window.Content = child;
+        }
+    }
+}
+    
+    private void ApplyAttachedProperties()
+    {
+        foreach (var vmlControl in vmlControls)
+        {
+            if (vmlControl.Name == null || !controls.ContainsKey(vmlControl.Name)) continue;
+            
+            var control = controls[vmlControl.Name];
+            
+            foreach (var prop in vmlControl.Properties)
+            {
+                if (!prop.Key.Contains('.')) continue;
+                
+                SetAttachedProperty(control, prop.Key, prop.Value);
+            }
+        }
+    }
+    
+    private void SetAttachedProperty(Control control, string propertyName, string value)
+    {
+        var parts = propertyName.Split('.');
+        if (parts.Length != 2) return;
+        
+        var className = parts[0];
+        var propName = parts[1];
+        
+        var attachedType = Type.GetType($"Avalonia.Controls.{className}, Avalonia.Controls");
+        if (attachedType == null) return;
+        
+        var setMethod = attachedType.GetMethod($"Set{propName}", BindingFlags.Public | BindingFlags.Static);
+        if (setMethod == null) return;
+        
+        try
+        {
+            var paramType = setMethod.GetParameters()[1].ParameterType;
+            var convertedValue = ConvertValue(value, paramType);
+            Console.WriteLine($"[ATTACH] Setting {propertyName} = {value} on {control.GetType().Name}"); setMethod.Invoke(null, new object[] { control, convertedValue });
+        }
+        catch
+        {
+        }
+    }
+    
+    private void SetProperty(Control control, string name, string value)
+    {
+        var propInfo = control.GetType().GetProperty(name);
+        if (propInfo != null && propInfo.CanWrite)
+        {
+            try
+            {
+                var convertedValue = ConvertValue(value, propInfo.PropertyType);
+                Console.WriteLine($"[PROP] Setting {name} = {value} on {control.GetType().Name}"); propInfo.SetValue(control, convertedValue);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to set {control.GetType().Name}.{name} = {value}: {ex.Message}");
+            }
+        }
+    }
+    
+    private object? ConvertValue(string value, Type targetType)
+{
+    if (value == null) return null;
+    
+    if (targetType == typeof(Avalonia.Media.IBrush))
+    {
+        return Avalonia.Media.Brush.Parse(value);
+    }
+    
+    if (targetType == typeof(Avalonia.Media.Brush))
+    {
+        return Avalonia.Media.Brush.Parse(value);
+    }
+    
+    if (targetType == typeof(Orientation))
+    {
+        return value == "Vertical" ? Orientation.Vertical : Orientation.Horizontal;
+    }
+    
+    if (targetType == typeof(Avalonia.Thickness))
+    {
+        return ParseThickness(value);
+    }
+    
+    if (targetType == typeof(Dock))
+    {
+        Console.WriteLine($"[CONVERT] Converting '{value}' to Dock enum");
+        var result = Enum.Parse<Dock>(value);
+        Console.WriteLine($"[CONVERT] Result: {result}");
+        return result;
+    }
+    
+    if (targetType.IsEnum)
+    {
+        return Enum.Parse(targetType, value);
+    }
+    
+    if (targetType == typeof(bool))
+    {
+        return bool.Parse(value);
+    }
+    
+    if (targetType == typeof(int))
+    {
+        return int.Parse(value);
+    }
+    
+    if (targetType == typeof(double))
+    {
+        return double.Parse(value);
+    }
+    
+    return Convert.ChangeType(value, targetType);
+}
+
+    
+    private Avalonia.Thickness ParseThickness(string value)
+    {
+        var parts = value.Split(',');
+        if (parts.Length == 1)
+        {
+            var uniform = double.Parse(parts[0]);
+            return new Avalonia.Thickness(uniform);
+        }
+        else if (parts.Length == 4)
+        {
+            return new Avalonia.Thickness(
+                double.Parse(parts[0]),
+                double.Parse(parts[1]),
+                double.Parse(parts[2]),
+                double.Parse(parts[3])
+            );
+        }
+        return new Avalonia.Thickness(0);
+    }
+}

@@ -1,0 +1,27 @@
+@Window MainWindow
+  Title = Test
+  Width = 600
+  Height = 400
+
+@DockPanel Root
+  Parent = MainWindow
+  LastChildFill = True
+
+@TextBlock LeftText
+  Parent = Root
+  DockPanel.Dock = Left
+  Text = LEFT
+  Background = Red
+  Width = 100
+
+@TextBlock RightText
+  Parent = Root
+  DockPanel.Dock = Right
+  Text = RIGHT
+  Background = Blue
+  Width = 100
+
+@TextBlock CenterText
+  Parent = Root
+  Text = CENTER
+  Background = Green

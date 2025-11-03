@@ -1,0 +1,443 @@
+@Window MainWindow
+  Title = 🌳Visualised Designer
+  Width = 1280
+  Height = 720
+  Background = #e8f5e9
+
+@DockPanel RootContainer
+  Parent = MainWindow
+  LastChildFill = True
+
+@Menu MainMenu
+  Parent = RootContainer
+  DockPanel.Dock = Top
+  Background = #1b5e20
+
+@MenuItem FileMenu
+  Parent = MainMenu
+  Header = File
+  Foreground = White
+
+@MenuItem NewMenuItem
+  Parent = FileMenu
+  Header = New Project
+  OnClick = HandleNew
+
+@MenuItem OpenMenuItem
+  Parent = FileMenu
+  Header = Open...
+  OnClick = HandleOpen
+
+@MenuItem SaveMenuItem
+  Parent = FileMenu
+  Header = Save
+  OnClick = HandleSave
+
+@MenuItem SaveAsMenuItem
+  Parent = FileMenu
+  Header = Save As...
+  OnClick = HandleSaveAs
+
+@MenuItem ExportMenuItem
+  Parent = FileMenu
+  Header = Export
+
+@MenuItem ExportVMLMenuItem
+  Parent = ExportMenuItem
+  Header = Export as VML...
+
+@MenuItem ExportXAMLMenuItem
+  Parent = ExportMenuItem
+  Header = Export as XAML...
+
+@MenuItem SepFile1
+  Parent = FileMenu
+  Header = -
+
+@MenuItem ExitMenuItem
+  Parent = FileMenu
+  Header = Exit
+  OnClick = HandleExit
+
+@MenuItem EditMenu
+  Parent = MainMenu
+  Header = Edit
+  Foreground = White
+
+@MenuItem UndoMenuItem
+  Parent = EditMenu
+  Header = Undo
+  OnClick = HandleUndo
+
+@MenuItem RedoMenuItem
+  Parent = EditMenu
+  Header = Redo
+  OnClick = HandleRedo
+
+@MenuItem SepEdit1
+  Parent = EditMenu
+  Header = -
+
+@MenuItem CutMenuItem
+  Parent = EditMenu
+  Header = Cut
+  OnClick = HandleCut
+
+@MenuItem CopyMenuItem
+  Parent = EditMenu
+  Header = Copy
+  OnClick = HandleCopy
+
+@MenuItem PasteMenuItem
+  Parent = EditMenu
+  Header = Paste
+  OnClick = HandlePaste
+
+@MenuItem DeleteMenuItem
+  Parent = EditMenu
+  Header = Delete
+  OnClick = HandleDelete
+
+@MenuItem SepEdit2
+  Parent = EditMenu
+  Header = -
+
+@MenuItem SelectAllMenuItem
+  Parent = EditMenu
+  Header = Select All
+  OnClick = HandleSelectAll
+
+@MenuItem ViewMenu
+  Parent = MainMenu
+  Header = View
+  Foreground = White
+
+@MenuItem PropertiesWindowMenuItem
+  Parent = ViewMenu
+  Header = Properties Window
+  OnClick = HandlePropertiesWindow
+
+@MenuItem ToolboxWindowMenuItem
+  Parent = ViewMenu
+  Header = Toolbox Window
+  OnClick = HandleToolboxWindow
+
+@MenuItem SepView1
+  Parent = ViewMenu
+  Header = -
+
+@MenuItem ZoomInMenuItem
+  Parent = ViewMenu
+  Header = Zoom In
+  OnClick = HandleZoomIn
+
+@MenuItem ZoomOutMenuItem
+  Parent = ViewMenu
+  Header = Zoom Out
+  OnClick = HandleZoomOut
+
+@MenuItem ZoomResetMenuItem
+  Parent = ViewMenu
+  Header = Reset Zoom
+  OnClick = HandleZoomReset
+
+@MenuItem ToolsMenu
+  Parent = MainMenu
+  Header = Tools
+  Foreground = White
+
+@MenuItem AlignMenuItem
+  Parent = ToolsMenu
+  Header = Align
+
+@MenuItem AlignLeftMenuItem
+  Parent = AlignMenuItem
+  Header = Align Left
+  OnClick = HandleAlignLeft
+
+@MenuItem AlignCenterMenuItem
+  Parent = AlignMenuItem
+  Header = Align Center
+  OnClick = HandleAlignCenter
+
+@MenuItem AlignRightMenuItem
+  Parent = AlignMenuItem
+  Header = Align Right
+  OnClick = HandleAlignRight
+
+@MenuItem AlignTopMenuItem
+  Parent = AlignMenuItem
+  Header = Align Top
+  OnClick = HandleAlignTop
+
+@MenuItem AlignMiddleMenuItem
+  Parent = AlignMenuItem
+  Header = Align Middle
+  OnClick = HandleAlignMiddle
+
+@MenuItem AlignBottomMenuItem
+  Parent = AlignMenuItem
+  Header = Align Bottom
+  OnClick = HandleAlignBottom
+
+@MenuItem SepTools1
+  Parent = ToolsMenu
+  Header = -
+
+@MenuItem OptionsMenuItem
+  Parent = ToolsMenu
+  Header = Options...
+  OnClick = HandleOptions
+
+@MenuItem ImportMenu
+  Parent = MainMenu
+  Header = Import
+  Foreground = White
+
+@MenuItem ImportVB5MenuItem
+  Parent = ImportMenu
+  Header = Visual Basic 5.0 Project
+  IsEnabled = False
+
+@MenuItem ImportVB6MenuItem
+  Parent = ImportMenu
+  Header = Visual Basic 6.0 Project
+  IsEnabled = False
+
+@MenuItem ImportWinFormsMenuItem
+  Parent = ImportMenu
+  Header = Windows Forms Project
+  IsEnabled = False
+
+@MenuItem ImportWPFMenuItem
+  Parent = ImportMenu
+  Header = WPF/XAML Project
+  IsEnabled = False
+
+@MenuItem ImportHTMLMenuItem
+  Parent = ImportMenu
+  Header = HTML/CSS Layout
+  IsEnabled = False
+
+@MenuItem HelpMenu
+  Parent = MainMenu
+  Header = Help
+  Foreground = White
+
+@MenuItem DocumentationMenuItem
+  Parent = HelpMenu
+  Header = Documentation
+  OnClick = HandleDocumentation
+
+@MenuItem VMLReferenceMenuItem
+  Parent = HelpMenu
+  Header = VML Reference
+  OnClick = HandleVMLReference
+
+@MenuItem SepHelp1
+  Parent = HelpMenu
+  Header = -
+
+@MenuItem AboutMenuItem
+  Parent = HelpMenu
+  Header = About 🌳Visualised
+  OnClick = HandleAbout
+
+@Border StatusBar
+  Parent = RootContainer
+  DockPanel.Dock = Bottom
+  Background = #1b5e20
+  Height = 30
+
+@StackPanel StatusStack
+  Parent = StatusBar
+  Orientation = Horizontal
+  Margin = 8,5,8,5
+
+@TextBlock StatusReady
+  Parent = StatusStack
+  Text = Ready
+  Foreground = White
+  Margin = 0,0,15,0
+  VerticalAlignment = Center
+
+@TextBlock StatusControl
+  Parent = StatusStack
+  Text = No selection
+  Foreground = White
+  Margin = 0,0,15,0
+  VerticalAlignment = Center
+
+@TextBlock StatusWindowSize
+  Parent = StatusStack
+  Text = Window: 1280x720
+  Foreground = White
+  Margin = 0,0,15,0
+  VerticalAlignment = Center
+
+@TextBlock StatusCanvasSize
+  Parent = StatusStack
+  Text = Canvas: 800x600
+  Foreground = White
+  VerticalAlignment = Center
+
+@DockPanel DesignerWorkspace
+  Parent = RootContainer
+  LastChildFill = True
+
+@Border ToolboxBorder
+  Parent = DesignerWorkspace
+  DockPanel.Dock = Left
+  Width = 203
+  Background = #c8e6c9
+  BorderBrush = #66bb6a
+  BorderThickness = 2
+  Padding = 3
+
+@StackPanel ToolboxStack
+  Parent = ToolboxBorder
+
+@Border ToolboxTitleBar
+  Parent = ToolboxStack
+  Background = #66bb6a
+  Padding = 10
+
+@TextBlock ToolboxTitle
+  Parent = ToolboxTitleBar
+  Text = Toolbox
+  FontSize = 14
+  FontWeight = Bold
+  Foreground = White
+
+@ScrollViewer ToolboxScroll
+  Parent = ToolboxStack
+
+@StackPanel ToolboxButtons
+  Parent = ToolboxScroll
+  Margin = 5
+
+@Expander CommonControls
+  Parent = ToolboxButtons
+  Header = Common Controls
+  IsExpanded = True
+  Margin = 0,5
+  HorizontalAlignment = Stretch
+
+@StackPanel CommonControlsStack
+  Parent = CommonControls
+  HorizontalAlignment = Stretch
+
+@Expander InputControls
+  Parent = ToolboxButtons
+  Header = Input Controls
+  IsExpanded = False
+  Margin = 0,5
+  HorizontalAlignment = Stretch
+
+@StackPanel InputControlsStack
+  Parent = InputControls
+  HorizontalAlignment = Stretch
+
+@Expander LayoutControls
+  Parent = ToolboxButtons
+  Header = Layout Panels
+  IsExpanded = False
+  Margin = 0,5
+  HorizontalAlignment = Stretch
+
+@StackPanel LayoutControlsStack
+  Parent = LayoutControls
+  HorizontalAlignment = Stretch
+
+@Expander DisplayControls
+  Parent = ToolboxButtons
+  Header = Display Controls
+  IsExpanded = False
+  Margin = 0,5
+  HorizontalAlignment = Stretch
+
+@StackPanel DisplayControlsStack
+  Parent = DisplayControls
+  HorizontalAlignment = Stretch
+
+@Expander ContainerControls
+  Parent = ToolboxButtons
+  Header = Containers
+  IsExpanded = False
+  Margin = 0,5
+  HorizontalAlignment = Stretch
+
+@StackPanel ContainerControlsStack
+  Parent = ContainerControls
+  HorizontalAlignment = Stretch
+
+@Border PropertiesBorder
+  Parent = DesignerWorkspace
+  DockPanel.Dock = Right
+  Width = 203
+  Background = #c8e6c9
+  BorderBrush = #66bb6a
+  BorderThickness = 2
+  Padding = 3
+
+@StackPanel PropertiesStack
+  Parent = PropertiesBorder
+
+@Border PropertiesTitleBar
+  Parent = PropertiesStack
+  Background = #66bb6a
+  Padding = 10
+
+@TextBlock PropertiesTitle
+  Parent = PropertiesTitleBar
+  Text = Properties
+  FontSize = 14
+  FontWeight = Bold
+  Foreground = White
+
+@ScrollViewer PropertiesScroll
+  Parent = PropertiesStack
+
+@StackPanel PropertiesContent
+  Parent = PropertiesScroll
+  Margin = 10
+
+@Expander AppearanceGroup
+  Parent = PropertiesContent
+  Header = Appearance
+  IsExpanded = True
+  Margin = 0,5
+  HorizontalAlignment = Stretch
+
+@StackPanel AppearanceStack
+  Parent = AppearanceGroup
+  Margin = 5
+  HorizontalAlignment = Stretch
+
+@TextBlock AppearancePlaceholder
+  Parent = AppearanceStack
+  Text = Select a control...
+  FontStyle = Italic
+
+@Expander LayoutGroup
+  Parent = PropertiesContent
+  Header = Layout
+  IsExpanded = False
+  Margin = 0,5
+  HorizontalAlignment = Stretch
+
+@StackPanel LayoutPropsStack
+  Parent = LayoutGroup
+  Margin = 5
+  HorizontalAlignment = Stretch
+
+@ScrollViewer CanvasScroll
+  Parent = DesignerWorkspace
+
+@Canvas DesignCanvas
+  Parent = CanvasScroll
+  Background = #f1f8e9
+  Width = 800
+  Height = 600
+  BorderBrush = Black
+  BorderThickness = 3

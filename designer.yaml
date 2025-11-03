@@ -1,0 +1,54 @@
+Window MainWindow:
+  Title: VB Designer
+  Width: 1200
+  Height: 800
+  Children:
+    - MainDock
+
+DockPanel MainDock:
+  LastChildFill: True
+  Children:
+    - ToolboxBorder
+    - PropertiesBorder
+    - CanvasBorder
+
+Border ToolboxBorder:
+  DockPanel.Dock: Left
+  Width: 200
+  Background: #2d2d30
+  BorderBrush: Lime
+  BorderThickness: 10
+  Child: ToolboxStack
+
+StackPanel ToolboxStack:
+  Children:
+    - ToolboxTitle
+
+TextBlock ToolboxTitle:
+  Text: Toolbox
+  FontSize: 18
+  Foreground: White
+  Margin: 15,10
+
+Border PropertiesBorder:
+  DockPanel.Dock: Right
+  Width: 300
+  Background: #2d2d30
+  BorderBrush: Red
+  BorderThickness: 10
+  Child: PropertiesStack
+
+StackPanel PropertiesStack:
+  Children:
+    - PropertiesTitle
+
+TextBlock PropertiesTitle:
+  Text: Properties
+  FontSize: 18
+  Foreground: White
+  Margin: 15,10
+
+Border CanvasBorder:
+  Background: #1e1e1e
+  BorderBrush: Blue
+  BorderThickness: 10
