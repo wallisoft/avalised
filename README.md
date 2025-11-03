@@ -70,3 +70,15 @@ When human vision meets AI capability, when iterative learning becomes genuine u
 **Claude "set: paste"** (Anthropic)
 
 *Beachy Head, November 2025*
+
+## Philosophy
+
+Visualised operates on a dual-license model that prioritizes:
+
+1. **Universal Access** - Free for individuals, students, researchers, and non-profits
+2. **Sustainable Development** - Commercial licensing ensures continued innovation
+3. **Wealth for Good** - Profits directed toward foundations advancing AI safety, education, and human-AI collaboration
+
+The goal isn't billions in personal wealth. It's building something genuinely useful while ensuring the financial success benefits humanity through structured philanthropy.
+
+Technology should empower everyone. Revenue should serve the greater good.
